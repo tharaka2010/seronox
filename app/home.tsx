@@ -14,10 +14,6 @@ import {
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
 
-// =============================================================================
-// CONSTANTS & HELPERS
-// =============================================================================
-
 const getScreenDimensions = () => {
   const { width, height } = Dimensions.get("window");
   return { width, height };
@@ -33,12 +29,12 @@ const CONFIG = {
   CHECKBOX_COLOR: "#6200ee",
   CONTACT_EMAIL: "support@serenox.com",
   ROUTES: {
-    LOGIN: "/screen/mainLanding", // This is the route for the "Next" button
-    NEXT_PAGE: "/nextPage", // Kept for completeness if used elsewhere
+    LOGIN: "/screen/mainLanding",
+    NEXT_PAGE: "/nextPage",
   },
   COLORS: {
     PRIMARY: "#6200ee",
-    SECONDARY: "#FF6B6B", // This color will now be the solid background
+    SECONDARY: "#FF6B6B",
     WHITE: "#FFFFFF",
     GRAY: "#666666",
     LIGHT_GRAY: "#F5F5F5",
@@ -95,9 +91,6 @@ const TERMS_DATA = [
   },
 ];
 
-// =============================================================================
-// MAIN COMPONENT
-// =============================================================================
 
 export default function Home() {
   const [isChecked, setIsChecked] = useState(false);
@@ -141,7 +134,7 @@ export default function Home() {
         {/* Header */}
         <Header responsiveStyles={responsiveStyles} />
 
-        {/* Scrollable Content */}
+        {/* Scrollable Content (Terms & Conditions Only) */}
         <ScrollView
           style={[styles.scrollView, responsiveStyles.scrollView]}
           showsVerticalScrollIndicator={false}
@@ -149,19 +142,17 @@ export default function Home() {
         >
           {/* Terms Content */}
           <TermsContent responsiveStyles={responsiveStyles} />
-
-          {/* Agreement Section */}
-          <AgreementSection
-            isChecked={isChecked}
-            setIsChecked={setIsChecked}
-            error={error}
-            responsiveStyles={responsiveStyles}
-          />
-          {/* Added a small buffer at the end of the scroll view to prevent content from touching the bottom */}
-          <View style={{ height: 20 }} />
         </ScrollView>
 
-        {/* Action Button */}
+        {/* Agreement Section - Moved Outside ScrollView */}
+        <AgreementSection
+          isChecked={isChecked}
+          setIsChecked={setIsChecked}
+          error={error}
+          responsiveStyles={responsiveStyles}
+        />
+
+        {/* Action Button - Moved Outside ScrollView */}
         <ActionButton onPress={handleNext} responsiveStyles={responsiveStyles} />
       </View>
     </SafeAreaView>

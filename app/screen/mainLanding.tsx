@@ -8,12 +8,14 @@ import {
   TextInput,
   StyleSheet,
   Dimensions,
-  SafeAreaView, // Use SafeAreaView for better handling of notches/status bars
+  SafeAreaView,
   Platform,
+  Alert,
 } from "react-native";
 import BottomNav from "../../components/BottomNav";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { submitFeedback } from "../utils/feedback"; // Corrected import path
 
 // =============================================================================
 // CONSTANTS & HELPERS
@@ -32,25 +34,25 @@ const CATEGORIES = [
     id: 'general',
     title: 'General Knowledge',
     image: require("../../assets/mainLanding/Homegeneral.png"),
-    route: './Genaral/genaral_main',
+    route: '/screen/Genaral/genaral_main',
   },
   {
     id: 'female',
     title: 'Female',
     image: require("../../assets/mainLanding/homefemale.png"),
-    route: './Female/female_main', // Assuming a route for female category
+    route: '/screen/Female/female_main',
   },
   {
     id: 'child',
     title: 'Child',
     image: require("../../assets/mainLanding/homechild.png"),
-    route: './Child/child_main', // Assuming a route for child category
+    route: '/screen/Child/child_main',
   },
   {
     id: 'male',
     title: 'Male',
     image: require("../../assets/mainLanding/homemale.png"),
-    route: './Male/male_main',
+    route: '/screen/Male/male_main',
   },
 ];
 
@@ -94,11 +96,19 @@ export default function Mainpage() {
     }
   };
 
-  const handleSendSuggestion = () => {
-    console.log("Suggestion sent:", suggestion);
-    // Implement your logic to send the suggestion (e.g., API call)
-    setSuggestion(""); // Clear the input after sending
-    // Optionally, show a success message to the user
+  const handleSendSuggestion = async () => {
+    if (!suggestion.trim()) {
+      Alert.alert("Empty Feedback", "Please type a message before sending.");
+      return;
+    }
+    try {
+      await submitFeedback(suggestion);
+      Alert.alert("Success", "Your feedback has been sent successfully!");
+      setSuggestion(""); // Clear the input after sending
+    } catch (error) {
+      Alert.alert("Error", "Could not send feedback. Please try again later.");
+      console.error(error);
+    }
   };
 
   return (

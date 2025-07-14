@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Import signInWithEmailAndPassword
-import { auth } from '../../firebase'; // Import your initialized auth object
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from 'expo-router';
+import { registerForPushNotificationsAsync } from '../utils/notifications';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -18,9 +19,8 @@ const LoginScreen = () => {
       return;
     }
     try {
-      // Implement Firebase login here
-      await signInWithEmailAndPassword(auth, email, password);
-      
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await registerForPushNotificationsAsync(userCredential.user);
       router.replace('/home'); // Use replace to prevent going back to login screen
     } catch (error: any) {
       console.error("Login error:", error.message);

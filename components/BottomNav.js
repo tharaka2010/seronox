@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity, Text, StyleSheet, Dimensions, Platform } from "react-native";
-import { useRouter, useSegments } from "expo-router"; // Import useSegments to highlight active tab
+import { useRouter, useSegments } from "expo-router";
 import { FontAwesome5, Ionicons, Feather, AntDesign } from "@expo/vector-icons";
 
 // =============================================================================
@@ -36,9 +36,10 @@ const COLORS = {
 // MAIN COMPONENT
 // =============================================================================
 
+
 const BottomNav = () => {
   const router = useRouter();
-  const segments = useSegments(); // Hook to get current route segments
+  const segments = useSegments();
   const [dimensions, setDimensions] = useState(getScreenDimensions());
   const [deviceType, setDeviceType] = useState(getDeviceType(dimensions.width));
 
@@ -52,12 +53,9 @@ const BottomNav = () => {
 
   const responsiveStyles = getResponsiveStyles(dimensions, deviceType);
 
-  // Helper to determine if a tab is active
   const isActive = (route) => {
-    // Get the current path from segments (e.g., ['screen', 'mainLanding'])
     const currentPath = `/${segments.join('/')}`;
-    // A simple check, might need more complex logic for nested routes if exact matching is required
-    return currentPath === route;
+    return currentPath.startsWith(route);
   };
 
   return (
@@ -71,7 +69,7 @@ const BottomNav = () => {
         return (
           <TouchableOpacity
             key={item.name}
-            onPress={() => router.replace(item.route)} // Use replace to avoid stacking navigation history for tabs
+            onPress={() => router.replace(item.route)}
             style={responsiveStyles.navItem}
             activeOpacity={0.7}
           >

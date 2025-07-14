@@ -1,0 +1,45 @@
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // IMPORTANT: The default wildcard rule. This is very open for development.
+    // In a production app, you should tighten this significantly or remove it
+    // and rely solely on specific collection rules.
+    // Ensure the timestamp matches your project's default expiry.
+    match /{document=**} {
+      allow read, write: if request.time < timestamp.date(2025, 8, 5); // Keep your existing expiry date
+    }
+
+    // Rules for the 'doctors' collection
+    // Allowing authenticated users to read doctor profiles.
+    // Disallowing direct client-side writes/updates/deletes to doctor data.
+    // Doctor data should typically be managed by administrators.
+    match /doctors/{doctorId} {
+      allow read: if request.auth != null; // Only authenticated users can read
+      allow create, update, delete: if false; // Deny client-side creation, update, delete
+    }
+
+    // Rules for the 'appointments' collection
+    match /appointments/{appointmentId} {
+      // Allow creating a new appointment if:
+      // 1. The user is authenticated (`request.auth != null`).
+      // 2. The `userId` field in the new document (`request.resource.data.userId`)
+      //    matches the authenticated user's UID (`request.auth.uid`).
+      // This ensures users can only create appointments for themselves.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      // Allow reading appointments if:
+      // 1. The user is authenticated (`request.auth != null`).
+      // 2. The `userId` field in the existing document (`resource.data.userId`)
+      //    matches the authenticated user's UID.
+      // This ensures users can only see their own appointments.
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // Disallow updating or deleting appointments directly from the client-side.
+      // Appointment status changes (e.g., "completed") should typically be handled by
+      // another secure Cloud Function triggered by an admin, not the user.
+      allow update, delete: if false;
+    }
+  }
+}

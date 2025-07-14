@@ -12,12 +12,16 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase'; // Import your initialized auth object
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase'; // Import your initialized auth and db objects
+import { registerForPushNotificationsAsync } from '../utils/notifications';
 
 const SignUpScreen = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [age, setAge] = useState(''); // New state for Age
@@ -29,8 +33,8 @@ const SignUpScreen = () => {
     setErrorMessage(''); // Clear previous errors
 
     // --- Start of validation for all fields ---
-    if (!email || !password || !age || !gender) {
-      setErrorMessage('All fields (Email, Password, Age, Gender) are required.');
+    if (!name || !email || !password || !age || !gender) {
+      setErrorMessage('All fields are required.');
       return;
     }
 
@@ -52,14 +56,19 @@ const SignUpScreen = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // At this point, the user is created in Firebase Authentication.
-      // Age and Gender are NOT stored in Firebase Authentication itself.
-      // They are only held in the local state of this component for now.
+      // Now, store the additional user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: name,
+        email: user.email,
+        age: ageNum,
+        gender: gender,
+        createdAt: new Date(),
+      });
+
+      await registerForPushNotificationsAsync(user);
 
       console.log('User created:', user.uid);
-      console.log('User Email:', email);
-      console.log('User Age (local state):', ageNum); // Log age from local state
-      console.log('User Gender (local state):', gender); // Log gender from local state
+      console.log('User data stored in Firestore');
 
       Alert.alert("Success", "Account created successfully! Please log in.");
       router.replace('/loginAuth/signinscreen');
@@ -94,6 +103,17 @@ const SignUpScreen = () => {
           </Text>
 
           <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <MaterialIcons name="person" size={20} color="#9d9d9d" style={styles.icon} />
+              <TextInput
+                placeholder="Name"
+                style={styles.textInput}
+                autoCapitalize="words"
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+
             <View style={styles.inputWrapper}>
               <MaterialIcons name="mail" size={20} color="#9d9d9d" style={styles.icon} />
               <TextInput
@@ -130,16 +150,19 @@ const SignUpScreen = () => {
               />
             </View>
 
-            {/* New Gender Input - You might want a Picker/Dropdown for better UX */}
+            {/* Gender Picker */}
             <View style={styles.inputWrapper}>
               <MaterialIcons name="wc" size={20} color="#9d9d9d" style={styles.icon} />
-              <TextInput
-                placeholder="Gender (e.g., Male, Female, Other)"
-                style={styles.textInput}
-                autoCapitalize="words"
-                value={gender}
-                onChangeText={setGender}
-              />
+              <Picker
+                selectedValue={gender}
+                onValueChange={(itemValue) => setGender(itemValue)}
+                style={styles.picker}
+                prompt="Select Gender"
+              >
+                <Picker.Item label="Select Gender..." value="" />
+                <Picker.Item label="Male" value="Male" />
+                <Picker.Item label="Female" value="Female" />
+              </Picker>
             </View>
 
             {errorMessage ? (
@@ -224,6 +247,13 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 10,
   },
+  picker: {
+    flex: 1,
+    height: '100%',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    color: '#333',
+  },
   errorMessageContainer: {
     marginTop: -5,
     marginBottom: 10,
@@ -265,4 +295,41 @@ const styles = StyleSheet.create({
     color: "#456FE8",
     fontWeight: "700",
   },
+  genderContainer: {
+    width: '100%',
+    marginBottom: 15,
+  },
+  genderLabel: {
+    color: '#5F5F5F',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  genderOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  genderButton: {
+    flex: 1,
+    paddingVertical: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  genderButtonSelected: {
+    backgroundColor: '#456FE8',
+    borderColor: '#456FE8',
+  },
+  genderButtonText: {
+    color: '#333',
+    fontSize: 16,
+  },
+  genderButtonTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });
+
+// Note: The Picker might look different on iOS vs Android.
+// For a more consistent look, a custom dropdown component might be needed.

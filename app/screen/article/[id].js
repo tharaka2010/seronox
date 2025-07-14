@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   View,
   Text,
@@ -29,7 +30,7 @@ const ArticleDetailPage = () => {
   const user = auth.currentUser;
 
   const [article, setArticle] = useState(null);
-  const [language, setLanguage] = useState('English');
+  const { language } = useLanguage();
   const [loading, setLoading] = useState(true);
 
   const fetchArticleData = useCallback(async () => {
@@ -39,14 +40,7 @@ const ArticleDetailPage = () => {
     }
 
     try {
-      // 1. Fetch User Language
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        setLanguage(userDocSnap.data().languagePreference || 'English');
-      }
-
-      // 2. Fetch Article Details
+      // Fetch Article Details
       const articleDocRef = doc(db, 'articles', articleId);
       const articleDocSnap = await getDoc(articleDocRef);
 
@@ -84,7 +78,7 @@ const ArticleDetailPage = () => {
     );
   }
 
-  const content = language === 'Sinhala' ? article.contentSi : article.contentEn;
+  const content = language === 'si' ? article.contentSi : article.contentEn;
   const title = content.title || '';
   
   // Render the body content based on its structure (array of paragraphs and images)

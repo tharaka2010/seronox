@@ -4,10 +4,10 @@ import CategoryArticles from '../../components/CategoryArticles';
 import ImageSlider from '../../components/ImageSlider';
 import { useLanguage } from '../../context/LanguageContext';
 
-const generalImages = [
-  require('../../../assets/general_slider/1.png'),
-  require('../../../assets/general_slider/2.png'),
-  require('../../../assets/general_slider/3.png'),
+const femaleImages = [
+  require('../../../assets/female/1.png'),
+  require('../../../assets/female/2.png'),
+  require('../../../assets/female/3.png'),
 ];
 
 const LanguageSwitcher = () => {
@@ -26,13 +26,12 @@ const LanguageSwitcher = () => {
   );
 };
 
-
-const GeneralMain = () => {
+const FemaleMain = () => {
   const ListHeader = () => (
     <View>
-      <ImageSlider images={generalImages} />
+      <ImageSlider images={femaleImages} />
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>General Health & Wellness</Text>
+        <Text style={styles.title}>Female Health & Wellness</Text>
         <LanguageSwitcher />
       </View>
     </View>
@@ -40,7 +39,7 @@ const GeneralMain = () => {
 
   return (
     <View style={styles.container}>
-      <CategoryArticles category="General" ListHeaderComponent={<ListHeader />} />
+      <CategoryArticles category="Female" ListHeaderComponent={<ListHeader />} />
     </View>
   );
 };
@@ -80,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GeneralMain;
+export default FemaleMain;
