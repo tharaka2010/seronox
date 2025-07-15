@@ -1,3 +1,4 @@
+//mainLoading.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,11 +12,12 @@ import {
   SafeAreaView,
   Platform,
   Alert,
+  StatusBar,
 } from "react-native";
 import BottomNav from "../../components/BottomNav";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { submitFeedback } from "../utils/feedback"; // Corrected import path
+import { submitFeedback } from "../utils/feedback";
 
 // =============================================================================
 // CONSTANTS & HELPERS
@@ -35,35 +37,43 @@ const CATEGORIES = [
     title: 'General Knowledge',
     image: require("../../assets/mainLanding/Homegeneral.png"),
     route: '/screen/Genaral/genaral_main',
+    gradient: ['#667eea', '#764ba2'],
   },
   {
     id: 'female',
     title: 'Female',
     image: require("../../assets/mainLanding/homefemale.png"),
     route: '/screen/Female/female_main',
+    gradient: ['#f093fb', '#f5576c'],
   },
   {
     id: 'child',
     title: 'Child',
     image: require("../../assets/mainLanding/homechild.png"),
     route: '/screen/Child/child_main',
+    gradient: ['#4facfe', '#00f2fe'],
   },
   {
     id: 'male',
     title: 'Male',
     image: require("../../assets/mainLanding/homemale.png"),
     route: '/screen/Male/male_main',
+    gradient: ['#43e97b', '#38f9d7'],
   },
 ];
 
 const COLORS = {
   WHITE: "#FFFFFF",
-  PINK_OVERLAY: "rgba(255, 192, 203, 0.3)", // Light pink with opacity
-  GRAY_TEXT: "#4A5568", // text-gray-800
-  BORDER_GRAY: "#D1D5DB", // border-gray-300
-  TEAL_BUTTON: "#2BC4B0", // bg-teal-500
-  PURPLE_ACCENT: "#D8BFD8", // bg-purple-200 (light purple)
-  DARK_GRAY_SECONDARY: "#6B7280", // text-gray-700
+  BLACK: "#000000",
+  PINK_OVERLAY: "rgba(255, 192, 203, 0.2)",
+  GRAY_TEXT: "#2D3748",
+  LIGHT_GRAY: "#F7FAFC",
+  BORDER_GRAY: "#E2E8F0",
+  TEAL_BUTTON: "#2BC4B0",
+  PURPLE_ACCENT: "#E6FFFA",
+  DARK_GRAY_SECONDARY: "#4A5568",
+  SHADOW: "rgba(0, 0, 0, 0.1)",
+  CARD_SHADOW: "rgba(0, 0, 0, 0.05)",
 };
 
 // =============================================================================
@@ -87,12 +97,10 @@ export default function Mainpage() {
   const responsiveStyles = getResponsiveStyles(dimensions, deviceType);
 
   const handleCategoryPress = (route) => {
-    // Only navigate if a route is defined for the category
     if (route) {
       router.push(route);
     } else {
       console.warn("Navigation route not defined for this category.");
-      // Optionally provide feedback to the user, e.g., a toast message
     }
   };
 
@@ -104,7 +112,7 @@ export default function Mainpage() {
     try {
       await submitFeedback(suggestion);
       Alert.alert("Success", "Your feedback has been sent successfully!");
-      setSuggestion(""); // Clear the input after sending
+      setSuggestion("");
     } catch (error) {
       Alert.alert("Error", "Could not send feedback. Please try again later.");
       console.error(error);
@@ -113,14 +121,25 @@ export default function Mainpage() {
 
   return (
     <SafeAreaView style={responsiveStyles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <View style={responsiveStyles.container}>
+        {/* Decorative Background Shapes */}
+        <View style={responsiveStyles.decorativeShapes}>
+          <View style={[responsiveStyles.roundShape, responsiveStyles.shape1]} />
+          <View style={[responsiveStyles.roundShape, responsiveStyles.shape2]} />
+          <View style={[responsiveStyles.roundShape, responsiveStyles.shape3]} />
+          <View style={[responsiveStyles.roundShape, responsiveStyles.shape4]} />
+          <View style={[responsiveStyles.roundShape, responsiveStyles.shape5]} />
+          <View style={[responsiveStyles.roundShape, responsiveStyles.shape6]} />
+        </View>
+
         <ScrollView
           style={responsiveStyles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={responsiveStyles.scrollContent}
         >
-          {/* Top Section */}
-          <TopBanner responsiveStyles={responsiveStyles} />
+          {/* Hero Section */}
+          <HeroSection responsiveStyles={responsiveStyles} />
 
           {/* Categories Section */}
           <CategoriesSection
@@ -134,18 +153,17 @@ export default function Mainpage() {
             onPress={() => router.push('./docterchanal')}
           />
 
-          {/* Footer Section - Suggestions */}
-          <SuggestionSection
+          {/* Feedback Section */}
+          <FeedbackSection
             responsiveStyles={responsiveStyles}
             suggestion={suggestion}
             setSuggestion={setSuggestion}
             onSend={handleSendSuggestion}
           />
-          {/* Add some bottom padding to the scroll view content to prevent the last item from being cut off by the bottom nav */}
-          <View style={{ height: responsiveStyles.bottomBuffer.height }} />
+          
+          <View style={responsiveStyles.bottomBuffer} />
         </ScrollView>
 
-        {/* Bottom Navigation */}
         <BottomNav />
       </View>
     </SafeAreaView>
@@ -153,17 +171,26 @@ export default function Mainpage() {
 }
 
 // =============================================================================
-// CHILD COMPONENTS
+// COMPONENTS
 // =============================================================================
 
-const TopBanner = ({ responsiveStyles }) => (
-  <View style={responsiveStyles.topBanner}>
-    <Image
-      source={require("../../assets/Safe.png")}
-      style={responsiveStyles.topBannerImage}
-      resizeMode="cover"
-    />
-    <View style={responsiveStyles.topBannerOverlay} />
+const HeroSection = ({ responsiveStyles }) => (
+  <View style={responsiveStyles.heroSection}>
+    {/* Decorative Background Elements */}
+    <View style={responsiveStyles.decorativeCircle1} />
+    <View style={responsiveStyles.decorativeCircle2} />
+    <View style={responsiveStyles.decorativeCircle3} />
+    <View style={responsiveStyles.decorativeShape1} />
+    <View style={responsiveStyles.decorativeShape2} />
+    
+    <View style={responsiveStyles.heroContent}>
+      <Text style={responsiveStyles.welcomeText}>Welcome Serenox</Text>
+      <View style={responsiveStyles.priorityContainer}>
+        <Text style={responsiveStyles.priorityText}>Your Health,</Text>
+        <Text style={responsiveStyles.priorityTextAccent}>Our Priority</Text>
+        <View style={responsiveStyles.priorityUnderline} />
+      </View>
+    </View>
   </View>
 );
 
@@ -172,7 +199,7 @@ const CategoriesSection = ({ responsiveStyles, onCategoryPress }) => (
     <Text style={responsiveStyles.sectionTitle}>Categories</Text>
     <View style={responsiveStyles.categoriesGrid}>
       {CATEGORIES.map((category) => (
-        <CategoryItem
+        <CategoryCard
           key={category.id}
           category={category}
           responsiveStyles={responsiveStyles}
@@ -183,88 +210,91 @@ const CategoriesSection = ({ responsiveStyles, onCategoryPress }) => (
   </View>
 );
 
-const CategoryItem = ({ category, responsiveStyles, onPress }) => (
-  <View style={responsiveStyles.categoryItemWrapper}>
-    <TouchableOpacity
-      style={responsiveStyles.categoryImageTouchable}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
+const CategoryCard = ({ category, responsiveStyles, onPress }) => (
+  <TouchableOpacity
+    style={responsiveStyles.categoryCard}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
+    <View style={responsiveStyles.categoryImageContainer}>
       <Image
         source={category.image}
         style={responsiveStyles.categoryImage}
         resizeMode="cover"
       />
-    </TouchableOpacity>
+      <View style={responsiveStyles.categoryGradient} />
+    </View>
     <Text style={responsiveStyles.categoryTitle}>{category.title}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 const DoctorAdviceSection = ({ responsiveStyles, onPress }) => (
-  <View style={responsiveStyles.doctorAdviceSection}>
-    <Text style={responsiveStyles.sectionTitle}>
-      If you need, get advice from a Doctor
-    </Text>
+  <View style={responsiveStyles.doctorSection}>
+    <Text style={responsiveStyles.sectionTitle}>Expert Consultation</Text>
     <TouchableOpacity
-      style={responsiveStyles.doctorAdviceCard}
+      style={responsiveStyles.doctorCard}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
-      <Image
-        source={require("../../assets/mainLanding/doctorchanel.png")}
-        style={responsiveStyles.doctorAdviceImage}
-        resizeMode="contain"
-      />
-      <Text style={responsiveStyles.doctorAdviceText}>
-        To contact a doctor as needed and receive treatment.{" "}
-      </Text>
+      <View style={responsiveStyles.doctorImageContainer}>
+        <Image
+          source={require("../../assets/mainLanding/doctorchanel.png")}
+          style={responsiveStyles.doctorImage}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={responsiveStyles.doctorContent}>
+        <Text style={responsiveStyles.doctorTitle}>Connect with Doctors</Text>
+        <Text style={responsiveStyles.doctorDescription}>
+          Get professional medical advice and treatment recommendations
+        </Text>
+        <View style={responsiveStyles.doctorButton}>
+          <Text style={responsiveStyles.doctorButtonText}>Consult Now</Text>
+          <Feather name="video" size={16} color={COLORS.WHITE} />
+        </View>
+      </View>
     </TouchableOpacity>
   </View>
 );
 
-const SuggestionSection = ({ responsiveStyles, suggestion, setSuggestion, onSend }) => (
-  <View style={responsiveStyles.suggestionSection}>
-    <Text style={responsiveStyles.suggestionTitle}>
-      You can add your comments and problems. We will reply to them.
+const FeedbackSection = ({ responsiveStyles, suggestion, setSuggestion, onSend }) => (
+  <View style={responsiveStyles.feedbackSection}>
+    <Text style={responsiveStyles.sectionTitle}>Share Your Thoughts</Text>
+    <Text style={responsiveStyles.feedbackSubtitle}>
+      We value your feedback and will respond to your concerns
     </Text>
-    <TextInput
-      placeholder="Type your suggestions here..."
-      value={suggestion}
-      onChangeText={setSuggestion}
-      multiline
-      numberOfLines={4}
-      style={responsiveStyles.suggestionInput}
-      textAlignVertical="top" // Aligns text at the top of the input box
-    />
+    <View style={responsiveStyles.inputContainer}>
+      <TextInput
+        placeholder="Tell us about your experience..."
+        value={suggestion}
+        onChangeText={setSuggestion}
+        multiline
+        numberOfLines={4}
+        style={responsiveStyles.textInput}
+        textAlignVertical="top"
+        placeholderTextColor={COLORS.DARK_GRAY_SECONDARY}
+      />
+    </View>
     <TouchableOpacity
       style={responsiveStyles.sendButton}
       onPress={onSend}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
-      <Text style={responsiveStyles.sendButtonText}>Send</Text>
-      <Feather name="send" size={responsiveStyles.sendButtonIcon.fontSize} color={responsiveStyles.sendButtonIcon.color} />
+      <Text style={responsiveStyles.sendButtonText}>Send Feedback</Text>
+      <Feather name="send" size={18} color={COLORS.WHITE} />
     </TouchableOpacity>
   </View>
 );
 
 // =============================================================================
-// RESPONSIVE STYLES FUNCTION
+// RESPONSIVE STYLES
 // =============================================================================
 
 const getResponsiveStyles = (dimensions, deviceType) => {
   const { width, height } = dimensions;
   const isTablet = deviceType === 'tablet';
-  const isLargePhone = deviceType === 'large_phone';
-
-  // Base scaling factor
-  const scaleFactor = isTablet ? 1.2 : isLargePhone ? 1.05 : 1;
-
-  // Define responsive padding and margins
-  const horizontalPadding = width * (isTablet ? 0.05 : 0.04);
-  const verticalMargin = height * (isTablet ? 0.03 : 0.02);
-  const sectionTitlePaddingTop = height * (isTablet ? 0.05 : 0.03);
-  const sectionTitlePaddingBottom = height * (isTablet ? 0.025 : 0.015);
-
+  const scaleFactor = isTablet ? 1.2 : 1;
+  const padding = width * 0.05;
 
   return StyleSheet.create({
     safeArea: {
@@ -273,184 +303,336 @@ const getResponsiveStyles = (dimensions, deviceType) => {
     },
     container: {
       flex: 1,
-      backgroundColor: COLORS.WHITE,
+      backgroundColor: COLORS.LIGHT_GRAY,
     },
     scrollView: {
       flex: 1,
+      zIndex: 1,
     },
     scrollContent: {
-      paddingBottom: Platform.OS === 'ios' ? 0 : 20, // Adjust for BottomNav if it overlaps
+      paddingBottom: 20,
     },
     bottomBuffer: {
-        height: 80, // Space for the BottomNav
+      height: 20,
     },
 
-    // Top Banner
-    topBanner: {
-      height: Math.max(180, height * 0.28) * scaleFactor, // Responsive height
+    // Decorative Background Shapes
+    decorativeShapes: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 0,
+    },
+    roundShape: {
+      position: 'absolute',
+      borderRadius: 1000,
+      opacity: 0.08,
+    },
+    shape1: {
+      width: 90,
+      height: 90,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      top: '8%',
+      right: '8%',
+    },
+    shape2: {
+      width: 70,
+      height: 70,
+      backgroundColor: '#f093fb',
+      top: '25%',
+      left: '5%',
+    },
+    shape3: {
+      width: 50,
+      height: 50,
+      backgroundColor: '#4facfe',
+      top: '45%',
+      right: '10%',
+    },
+    shape4: {
+      width: 35,
+      height: 35,
+      backgroundColor: '#43e97b',
+      top: '65%',
+      left: '12%',
+    },
+    shape5: {
+      width: 25,
+      height: 25,
+      backgroundColor: '#667eea',
+      top: '38%',
+      right: '15%',
+    },
+    shape6: {
+      width: 40,
+      height: 40,
+      backgroundColor: '#f5576c',
+      top: '80%',
+      left: '8%',
+    },
+
+    // Hero Section
+    heroSection: {
+      height: height * 0.3,
+      backgroundColor: COLORS.WHITE,
+      position: 'relative',
+      marginBottom: 20,
+      overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    // Decorative Elements
+    decorativeCircle1: {
+      position: 'absolute',
+      top: -50,
+      right: -50,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      opacity: 0.1,
+    },
+    decorativeCircle2: {
+      position: 'absolute',
+      top: 60,
+      left: -30,
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      opacity: 0.15,
+    },
+    decorativeCircle3: {
+      position: 'absolute',
+      bottom: -40,
+      right: 30,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      opacity: 0.08,
+    },
+    decorativeShape1: {
+      position: 'absolute',
+      top: 30,
+      right: 40,
+      width: 60,
+      height: 60,
+      borderRadius: 15,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      opacity: 0.12,
+      transform: [{ rotate: '45deg' }],
+    },
+    decorativeShape2: {
+      position: 'absolute',
+      bottom: 40,
+      left: 20,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      opacity: 0.1,
+    },
+    heroContent: {
+      alignItems: 'center',
+      zIndex: 1,
+    },
+    welcomeText: {
+      fontSize: 28 * scaleFactor,
+      fontWeight: '300',
+      color: COLORS.GRAY_TEXT,
+      marginBottom: 20,
+      letterSpacing: 1,
+    },
+    priorityContainer: {
+      alignItems: 'center',
+    },
+    priorityText: {
+      fontSize: 24 * scaleFactor,
+      fontWeight: '600',
+      color: COLORS.GRAY_TEXT,
+      marginBottom: 5,
+    },
+    priorityTextAccent: {
+      fontSize: 24 * scaleFactor,
+      fontWeight: '700',
+      color: COLORS.TEAL_BUTTON,
+      marginBottom: 15,
+    },
+    priorityUnderline: {
+      width: 80,
+      height: 3,
+      backgroundColor: COLORS.TEAL_BUTTON,
+      borderRadius: 2,
+      opacity: 0.8,
+    },
+
+    // Categories Section
+    categoriesSection: {
+      paddingHorizontal: padding,
+      marginBottom: 30,
+    },
+    sectionTitle: {
+      fontSize: 22 * scaleFactor,
+      fontWeight: '600',
+      color: COLORS.GRAY_TEXT,
+      marginBottom: 15,
+    },
+    categoriesGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginTop: 15,
+    },
+    categoryCard: {
+      width: '48%',
+      backgroundColor: COLORS.WHITE,
+      borderRadius: 20,
+      marginBottom: 20,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+      overflow: 'hidden',
+    },
+    categoryImageContainer: {
+      height: 120,
       position: 'relative',
     },
-    topBannerImage: {
-      position: 'absolute',
+    categoryImage: {
       width: '100%',
       height: '100%',
-      borderBottomLeftRadius: 30, // Adjust radius for smoother curve
-      borderBottomRightRadius: 30,
-      overflow: 'hidden', // Ensure radius applies
-      shadowColor: '#000', // Add shadow
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 5,
-      elevation: 8,
     },
-    topBannerOverlay: {
+    categoryGradient: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
       backgroundColor: COLORS.PINK_OVERLAY,
-      borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30,
-    },
-
-    // Categories Section
-    categoriesSection: {
-      paddingHorizontal: horizontalPadding,
-      marginTop: sectionTitlePaddingTop,
-    },
-    sectionTitle: {
-      fontSize: Math.max(18, 22 * scaleFactor),
-      fontWeight: '600', // Semi-bold
-      marginBottom: sectionTitlePaddingBottom,
-      color: COLORS.GRAY_TEXT,
-    },
-    categoriesGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      marginTop: 8, // slight margin
-    },
-    categoryItemWrapper: {
-      width: isTablet ? '48%' : '47%', // Slightly less than 50% for spacing
-      marginBottom: verticalMargin,
-      alignItems: 'center',
-      overflow: 'hidden',
-      borderRadius: 12, // Rounded corners for consistency
-      backgroundColor: COLORS.WHITE, // Explicit background
-      shadowColor: '#000', // Subtle shadow for card effect
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 3,
-    },
-    categoryImageTouchable: {
-      width: '100%',
-      height: Math.max(100, 120 * scaleFactor), // Responsive image height
-      justifyContent: 'center',
-      alignItems: 'center',
-      // paddingTop: 5, // Keep a small top padding if image has internal padding
-    },
-    categoryImage: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 12, // Apply radius
-      // borderBottomLeftRadius: 0, // No border radius at bottom if text is below
-      // borderBottomRightRadius: 0,
     },
     categoryTitle: {
-      textAlign: 'center',
-      fontSize: Math.max(16, 18 * scaleFactor),
-      fontWeight: '500', // Medium
-      marginVertical: 10, // Adjust vertical margin
+      fontSize: 16 * scaleFactor,
+      fontWeight: '600',
       color: COLORS.GRAY_TEXT,
+      textAlign: 'center',
+      paddingVertical: 15,
+      paddingHorizontal: 10,
     },
 
-    // Doctor Advice Section
-    doctorAdviceSection: {
-      marginTop: verticalMargin,
-      paddingHorizontal: horizontalPadding,
-      marginBottom: verticalMargin, // Add bottom margin for spacing
+    // Doctor Section
+    doctorSection: {
+      paddingHorizontal: padding,
+      marginBottom: 30,
     },
-    doctorAdviceCard: {
+    doctorCard: {
+      backgroundColor: COLORS.WHITE,
+      borderRadius: 20,
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+      marginTop:10,
+      padding:10
+    },
+    doctorImageContainer: {
+      alignItems: 'center',
+    },
+    doctorImage: {
+      width: '100%',       // Make image responsive
+      height: undefined,   // Let it scale naturally
+      aspectRatio: 1.8,    // Adjust this to your image's real width:height ratio
+      resizeMode: 'contain', // Ensure the image doesn't stretch
+    },
+    doctorContent: {
+      alignItems: 'center',
+    },
+    doctorTitle: {
+      fontSize: 20 * scaleFactor,
+      fontWeight: '600',
+      color: COLORS.GRAY_TEXT,
+      marginBottom: 8,
+    },
+    doctorDescription: {
+      fontSize: 16 * scaleFactor,
+      color: COLORS.DARK_GRAY_SECONDARY,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: 15,
+    },
+    doctorButton: {
+      backgroundColor: COLORS.TEAL_BUTTON,
+      paddingHorizontal: 30,
+      paddingVertical: 15,
+      borderRadius: 25,
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: COLORS.PURPLE_ACCENT,
-      borderRadius: 12, // More pronounced rounded corners
-      padding: Math.max(12, 16 * scaleFactor), // Responsive padding
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 3,
-      elevation: 4,
-      overflow: 'hidden', // Ensure content respects border radius
+      shadowColor: COLORS.TEAL_BUTTON,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 5,
     },
-    doctorAdviceImage: {
-      height: Math.max(100, 120 * scaleFactor),
-      width: '45%', // Responsive width
-      marginRight: Math.max(10, 15 * scaleFactor),
-      // Ensure image is contained without stretching
-      aspectRatio: 1.5, // Adjust this based on your image's aspect ratio if needed
-    },
-    doctorAdviceText: {
-      color: COLORS.GRAY_TEXT,
-      flex: 1, // Allow text to take remaining space
-      fontSize: Math.max(14, 16 * scaleFactor),
-      lineHeight: Math.max(20, 22 * scaleFactor),
+    doctorButtonText: {
+      color: COLORS.WHITE,
+      fontSize: 16 * scaleFactor,
+      fontWeight: '600',
+      marginRight: 10,
     },
 
-    // Suggestion Section
-    suggestionSection: {
-      padding: horizontalPadding, // Consistent padding
+    // Feedback Section
+    feedbackSection: {
+      paddingHorizontal: padding,
+      marginBottom: 30,
+    },
+    feedbackSubtitle: {
+      fontSize: 16 * scaleFactor,
+      color: COLORS.DARK_GRAY_SECONDARY,
+      marginBottom: 20,
+      marginTop: 5,
+    },
+    inputContainer: {
       backgroundColor: COLORS.WHITE,
-      borderRadius: 12, // Rounded corners
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 3,
-      marginBottom: verticalMargin, // Add margin to separate from bottom nav
-    },
-    suggestionTitle: {
-      fontSize: Math.max(14, 16 * scaleFactor),
-      color: COLORS.GRAY_TEXT,
-      marginBottom: Math.max(12, 16 * scaleFactor),
-    },
-    suggestionInput: {
+      borderRadius: 15,
       borderWidth: 1,
       borderColor: COLORS.BORDER_GRAY,
-      borderRadius: 8,
-      padding: Math.max(10, 12 * scaleFactor),
-      color: COLORS.DARK_GRAY_SECONDARY,
-      minHeight: Math.max(120, 150 * scaleFactor), // Responsive min-height
-      fontSize: Math.max(14, 16 * scaleFactor),
+      shadowColor: COLORS.SHADOW,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      marginBottom: 20,
+    },
+    textInput: {
+      padding: 20,
+      fontSize: 16 * scaleFactor,
+      color: COLORS.GRAY_TEXT,
+      minHeight: 120,
+      textAlignVertical: 'top',
     },
     sendButton: {
-      marginTop: Math.max(16, 20 * scaleFactor),
       backgroundColor: COLORS.TEAL_BUTTON,
-      borderRadius: 10, // Slightly more rounded
-      paddingVertical: Math.max(12, 14 * scaleFactor),
-      paddingHorizontal: Math.max(20, 24 * scaleFactor),
+      borderRadius: 15,
+      paddingVertical: 18,
+      paddingHorizontal: 30,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 3,
-      elevation: 4,
+      shadowColor: COLORS.TEAL_BUTTON,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 5,
     },
     sendButtonText: {
       color: COLORS.WHITE,
-      fontWeight: '600', // Semi-bold
-      marginRight: Math.max(8, 10 * scaleFactor),
-      fontSize: Math.max(16, 18 * scaleFactor),
+      fontSize: 18 * scaleFactor,
+      fontWeight: '600',
+      marginRight: 10,
     },
-    sendButtonIcon: {
-        fontSize: Math.max(18, 20 * scaleFactor),
-        color: COLORS.WHITE,
-    }
   });
 };

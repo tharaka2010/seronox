@@ -1,46 +1,21 @@
-// home.tsx
-
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
+//home
+import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  SafeAreaView, 
+  KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-} from "react-native";
-import Checkbox from "expo-checkbox";
-import { useRouter } from "expo-router";
+  ScrollView,
+  Dimensions
+} from 'react-native';
+import Checkbox from 'expo-checkbox';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useRouter } from 'expo-router';
 
-const getScreenDimensions = () => {
-  const { width, height } = Dimensions.get("window");
-  return { width, height };
-};
-
-const getDeviceType = (width) => {
-  if (width >= 768) return 'tablet';
-  if (width >= 414) return 'large_phone';
-  return 'phone';
-};
-
-const CONFIG = {
-  CHECKBOX_COLOR: "#6200ee",
-  CONTACT_EMAIL: "support@serenox.com",
-  ROUTES: {
-    LOGIN: "/screen/mainLanding",
-    NEXT_PAGE: "/nextPage",
-  },
-  COLORS: {
-    PRIMARY: "#6200ee",
-    SECONDARY: "#FF6B6B",
-    WHITE: "#FFFFFF",
-    GRAY: "#666666",
-    LIGHT_GRAY: "#F5F5F5",
-    ERROR: "#FF4444",
-  },
-};
+const { width } = Dimensions.get('window');
 
 const TERMS_DATA = [
   {
@@ -86,482 +61,337 @@ const TERMS_DATA = [
   {
     id: 9,
     title: "Contact Us",
-    content: `If you have any questions about these terms, please contact us at ${CONFIG.CONTACT_EMAIL}.`,
-    hasEmail: true,
+    content: "If you have any questions about these terms, please contact us at support@serenox.com.",
   },
 ];
 
-
-export default function Home() {
+const TermsScreen = () => {
   const [isChecked, setIsChecked] = useState(false);
-  const [error, setError] = useState(false);
-  const [dimensions, setDimensions] = useState(getScreenDimensions());
-  const [deviceType, setDeviceType] = useState(getDeviceType(dimensions.width));
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener("change", ({ window }) => {
-      setDimensions(window);
-      setDeviceType(getDeviceType(window.width));
-    });
-
-    return () => subscription?.remove();
-  }, []);
-
   const handleNext = () => {
+    setErrorMessage('');
+    
     if (!isChecked) {
-      setError(true);
-      setTimeout(() => setError(false), 3000);
-    } else {
-      setError(false);
-      try {
-        router.push(CONFIG.ROUTES.LOGIN); // This navigates to /mainLanding
-      } catch (navigationError) {
-        console.error('Navigation error:', navigationError);
-        router.replace(CONFIG.ROUTES.LOGIN); // Fallback navigation
-      }
+      setErrorMessage('Please confirm you agree with the policies and conditions');
+      return;
     }
+    
+    router.push('mainLanding');
   };
 
-  const responsiveStyles = getResponsiveStyles(dimensions, deviceType);
-
   return (
-    // SafeAreaView now explicitly sets the background color for the whole screen
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: CONFIG.COLORS.SECONDARY }]}>
-      <View
-        style={[styles.container, responsiveStyles.container]}
-      >
-        {/* Header */}
-        <Header responsiveStyles={responsiveStyles} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Decorative Background Elements */}
+        <View style={styles.decorativeShapes}>
+          <View style={[styles.roundShape, styles.shape1]} />
+          <View style={[styles.roundShape, styles.shape2]} />
+          <View style={[styles.roundShape, styles.shape3]} />
+          <View style={[styles.roundShape, styles.shape4]} />
+          <View style={[styles.roundShape, styles.shape5]} />
+          <View style={[styles.roundShape, styles.shape6]} />
+        </View>
 
-        {/* Scrollable Content (Terms & Conditions Only) */}
-        <ScrollView
-          style={[styles.scrollView, responsiveStyles.scrollView]}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={responsiveStyles.scrollContent}
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* Terms Content */}
-          <TermsContent responsiveStyles={responsiveStyles} />
-        </ScrollView>
+          <View style={styles.formContainer}>
+            {/* Welcome Section */}
+            <View style={styles.welcomeSection}>
+              <View style={styles.logoContainer}>
+                <MaterialIcons name="description" size={40} color="#5a67d8" />
+              </View>
+              <Text style={styles.title}>Terms & Conditions</Text>
+              <Text style={styles.subtitle}>
+                Welcome to Serenox
+              </Text>
+            </View>
 
-        {/* Agreement Section - Moved Outside ScrollView */}
-        <AgreementSection
-          isChecked={isChecked}
-          setIsChecked={setIsChecked}
-          error={error}
-          responsiveStyles={responsiveStyles}
-        />
+            {/* Scrollable Terms Content */}
+            <View style={styles.termsContainer}>
+              <Text style={styles.termsTitle}>Terms and Conditions</Text>
+              <Text style={styles.termsSubtitle}>
+                Please read the following terms and conditions carefully before proceeding:
+              </Text>
 
-        {/* Action Button - Moved Outside ScrollView */}
-        <ActionButton onPress={handleNext} responsiveStyles={responsiveStyles} />
+              <ScrollView 
+                style={styles.termsScrollView}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={styles.termsScrollContent}
+              >
+                {TERMS_DATA.map((term) => (
+                  <View key={term.id} style={styles.termItem}>
+                    <Text style={styles.termTitle}>
+                      {term.id}. {term.title}
+                    </Text>
+                    <Text style={styles.termContent}>
+                      {term.content}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Agreement Section */}
+            <View style={styles.agreementSection}>
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  value={isChecked}
+                  onValueChange={setIsChecked}
+                  color={isChecked ? '#5a67d8' : undefined}
+                  style={styles.checkbox}
+                />
+                <Text style={styles.checkboxText}>
+                  I agree with all policies and conditions
+                </Text>
+              </View>
+
+              {errorMessage ? (
+                <View style={styles.errorMessageContainer}>
+                  <MaterialIcons name="error" size={16} color="#dc3545" />
+                  <Text style={styles.errorMessage}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              <TouchableOpacity
+                onPress={handleNext}
+                style={styles.nextButton}
+              >
+                <Text style={styles.nextButtonText}>
+                  Next
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </SafeAreaView>
   );
-}
-
-// =============================================================================
-// CHILD COMPONENTS
-// =============================================================================
-
-const Header = ({ responsiveStyles }) => (
-  <View style={[styles.header, responsiveStyles.header]}>
-    <Text style={[styles.headerTitle, responsiveStyles.headerTitle]}>
-      Terms & Conditions
-    </Text>
-    <Text style={[styles.headerSubtitle, responsiveStyles.headerSubtitle]}>
-      Welcome to Serenox
-    </Text>
-  </View>
-);
-
-const TermsContent = ({ responsiveStyles }) => (
-  <View style={[styles.termsContainer, responsiveStyles.termsContainer]}>
-    <View style={[styles.termsContent, responsiveStyles.termsContent]}>
-      {/* Content Header */}
-      <ContentHeader responsiveStyles={responsiveStyles} />
-
-      {/* Terms List */}
-      <TermsList responsiveStyles={responsiveStyles} />
-    </View>
-  </View>
-);
-
-const ContentHeader = ({ responsiveStyles }) => (
-  <View style={[styles.contentHeader, responsiveStyles.contentHeader]}>
-    <Text style={[styles.contentTitle, responsiveStyles.contentTitle]}>
-      Terms and Conditions
-    </Text>
-    <Text style={[styles.contentSubtitle, responsiveStyles.contentSubtitle]}>
-      Please read the following terms and conditions carefully before proceeding:
-    </Text>
-  </View>
-);
-
-const TermsList = ({ responsiveStyles }) => (
-  <View style={[styles.termsList, responsiveStyles.termsList]}>
-    {TERMS_DATA.map((term) => (
-      <TermItem key={term.id} term={term} responsiveStyles={responsiveStyles} />
-    ))}
-  </View>
-);
-
-const TermItem = ({ term, responsiveStyles }) => (
-  <View style={[styles.termItem, responsiveStyles.termItem]}>
-    <Text style={[styles.termTitle, responsiveStyles.termTitle]}>
-      {term.id}. {term.title}
-    </Text>
-    <Text style={[styles.termContent, responsiveStyles.termContent]}>
-      {term.hasEmail ? (
-        <TextWithEmail content={term.content} responsiveStyles={responsiveStyles} />
-      ) : (
-        term.content
-      )}
-    </Text>
-  </View>
-);
-
-const TextWithEmail = ({ content, responsiveStyles }) => {
-  const parts = content.split(CONFIG.CONTACT_EMAIL);
-
-  return (
-    <>
-      {parts[0]}
-      <Text style={[styles.emailLink, responsiveStyles.emailLink]}>
-        {CONFIG.CONTACT_EMAIL}
-      </Text>
-      {parts[1] || ''}
-    </>
-  );
 };
 
-const AgreementSection = ({ isChecked, setIsChecked, error, responsiveStyles }) => (
-  <View style={[styles.agreementSection, responsiveStyles.agreementSection]}>
-    {/* Checkbox Container */}
-    <View style={[styles.checkboxContainer, responsiveStyles.checkboxContainer]}>
-      <Checkbox
-        value={isChecked}
-        onValueChange={setIsChecked}
-        color={isChecked ? CONFIG.CHECKBOX_COLOR : undefined}
-        style={[styles.checkbox, responsiveStyles.checkbox]}
-      />
-      <Text style={[styles.checkboxText, responsiveStyles.checkboxText]}>
-        I agree with all policies and conditions
-      </Text>
-    </View>
-
-    {/* Error Message */}
-    {error && <ErrorMessage responsiveStyles={responsiveStyles} />}
-  </View>
-);
-
-const ErrorMessage = ({ responsiveStyles }) => (
-  <Text style={[styles.errorMessage, responsiveStyles.errorMessage]}>
-    Please confirm you agree with the policies and conditions
-  </Text>
-);
-
-const ActionButton = ({ onPress, responsiveStyles }) => (
-  <View style={[styles.actionContainer, responsiveStyles.actionContainer]}>
-    <TouchableOpacity
-      style={[styles.actionButton, responsiveStyles.actionButton]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <Text style={[styles.actionButtonText, responsiveStyles.actionButtonText]}>
-        Next
-      </Text>
-    </TouchableOpacity>
-  </View>
-);
-
-// =============================================================================
-// RESPONSIVE STYLES FUNCTION
-// =============================================================================
-
-const getResponsiveStyles = (dimensions, deviceType) => {
-  const { width, height } = dimensions;
-  const isTablet = deviceType === 'tablet';
-  const isLargePhone = deviceType === 'large_phone';
-
-  const scaleFactor = isTablet ? 1.4 : isLargePhone ? 1.1 : 1;
-  // Increase base padding for better overall spacing
-  const baseHorizontalPadding = Math.max(20, width * 0.05);
-  const baseVerticalPadding = Math.max(20, height * 0.025);
-
-
-  return StyleSheet.create({
-    container: {
-      flex: 1, // Ensure container takes full height within SafeAreaView
-      paddingHorizontal: baseHorizontalPadding, // Apply consistent horizontal padding
-      paddingTop: Platform.OS === 'ios' ? 0 : 20, // Add top padding for Android within the View (SafeAreaView handles iOS)
-    },
-
-    header: {
-      paddingBottom: 20,
-      paddingTop: 0, // SafeAreaView handles top padding, no extra here
-    },
-
-    headerTitle: {
-      fontSize: Math.max(24, Math.min(32, width * 0.075)) * scaleFactor,
-      lineHeight: Math.max(28, Math.min(38, width * 0.085)) * scaleFactor,
-    },
-
-    headerSubtitle: {
-      fontSize: Math.max(14, Math.min(18, width * 0.04)) * scaleFactor,
-      marginTop: 5,
-    },
-
-    scrollView: {
-      flex: 1,
-    },
-
-    scrollContent: {
-      paddingBottom: baseVerticalPadding, // Padding at the bottom of the scroll content
-    },
-
-    termsContainer: {
-      marginBottom: 20,
-    },
-
-    termsContent: {
-      // Adjusted padding for the white card content
-      paddingHorizontal: baseHorizontalPadding * 0.8, // Slightly less internal padding
-      paddingVertical: baseVerticalPadding,
-      flex: 1, // Allow content to expand within the scroll view
-    },
-
-    contentHeader: {
-      marginBottom: Math.max(20, height * 0.025),
-    },
-
-    contentTitle: {
-      fontSize: Math.max(20, Math.min(28, width * 0.065)) * scaleFactor,
-      lineHeight: Math.max(24, Math.min(34, width * 0.075)) * scaleFactor,
-    },
-
-    contentSubtitle: {
-      fontSize: Math.max(14, Math.min(16, width * 0.04)) * scaleFactor,
-      lineHeight: Math.max(18, Math.min(22, width * 0.05)) * scaleFactor,
-    },
-
-    termsList: {
-      gap: Math.max(16, height * 0.02),
-    },
-
-    termItem: {
-      marginBottom: Math.max(16, height * 0.02),
-    },
-
-    termTitle: {
-      fontSize: Math.max(16, Math.min(18, width * 0.045)) * scaleFactor,
-      lineHeight: Math.max(20, Math.min(24, width * 0.055)) * scaleFactor,
-      marginBottom: 8,
-    },
-
-    termContent: {
-      color: CONFIG.COLORS.GRAY,
-      lineHeight: 20,
-    },
-
-    emailLink: {
-      fontSize: Math.max(14, Math.min(16, width * 0.04)) * scaleFactor,
-    },
-
-    agreementSection: {
-      marginTop: Math.max(20, height * 0.025),
-    },
-
-    checkboxContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: CONFIG.COLORS.WHITE,
-      borderRadius: 8,
-      marginBottom: 8,
-      borderWidth: 1,
-      borderColor: '#E0E0E0',
-      paddingHorizontal: baseHorizontalPadding * 0.8, // Match termsContent padding
-      paddingVertical: Math.max(16, height * 0.02),
-    },
-
-    checkbox: {
-      width: Math.max(20, 24 * scaleFactor),
-      height: Math.max(20, 24 * scaleFactor),
-    },
-
-    checkboxText: {
-      color: CONFIG.COLORS.GRAY,
-      fontWeight: '600',
-      marginLeft: Math.max(12, width * 0.03),
-      flex: 1,
-    },
-
-    errorMessage: {
-      fontSize: Math.max(14, Math.min(16, width * 0.04)) * scaleFactor,
-      marginTop: 12,
-      textAlign: 'center',
-    },
-
-    actionContainer: {
-      alignItems: 'center',
-      paddingVertical: Math.max(16, height * 0.02),
-    },
-
-    actionButton: {
-      backgroundColor: CONFIG.COLORS.SECONDARY,
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      alignItems: 'center',
-      paddingVertical: Math.max(14, 16 * scaleFactor),
-      paddingHorizontal: Math.max(32, 40 * scaleFactor),
-      borderRadius: Math.max(25, 30 * scaleFactor),
-      minWidth: Math.max(120, 140 * scaleFactor),
-    },
-
-    actionButtonText: {
-      color: CONFIG.COLORS.WHITE,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      letterSpacing: 0.5,
-    },
-  });
-};
-
-// =============================================================================
-// BASE STYLES
-// =============================================================================
+export default TermsScreen;
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    // The background color for SafeAreaView is now set dynamically in the component's return
+    backgroundColor: "#f8f9fa",
   },
-
   container: {
     flex: 1,
-    backgroundColor: 'transparent', // This view acts as a content container, its background is transparent
+    backgroundColor: "#f8f9fa",
   },
-
-  header: {
-    alignItems: 'center',
+  decorativeShapes: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
   },
-
-  headerTitle: {
-    color: CONFIG.COLORS.WHITE,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    letterSpacing: 0.5,
+  roundShape: {
+    position: 'absolute',
+    borderRadius: 1000,
+    opacity: 0.1,
   },
-
-  headerSubtitle: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    fontWeight: '500',
+  shape1: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#5a67d8',
+    top: '10%',
+    right: '5%',
   },
-
-  scrollView: {
+  shape2: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#ffd700',
+    top: '20%',
+    left: '10%',
+  },
+  shape3: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#ff6b6b',
+    top: '65%',
+    right: '20%',
+  },
+  shape4: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#4ecdc4',
+    top: '75%',
+    left: '15%',
+  },
+  shape5: {
+    width: 30,
+    height: 30,
+    backgroundColor: '#45b7d1',
+    top: '35%',
+    right: '8%',
+  },
+  shape6: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#f39c12',
+    top: '50%',
+    left: '5%',
+  },
+  keyboardAvoidingContainer: {
     flex: 1,
+    zIndex: 1,
   },
-
-  termsContainer: {
-    backgroundColor: CONFIG.COLORS.WHITE,
-    borderRadius: 12,
-    opacity: 0.95,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 400,
+    zIndex: 2,
+    paddingTop: 20,
+    paddingBottom: 20,
+  },
+  welcomeSection: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#ffffff',
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
+    elevation: 8,
   },
-
-  termsContent: {
+  title: {
+    color: "#1a1a1a",
+    fontSize: 28,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    color: "#6c757d",
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  termsContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    width: '100%',
     flex: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
-
-  contentHeader: {
-    alignItems: 'center',
-  },
-
-  contentTitle: {
-    color: CONFIG.COLORS.PRIMARY,
-    fontWeight: 'bold',
+  termsTitle: {
+    color: "#5a67d8",
+    fontSize: 20,
+    fontWeight: "700",
     textAlign: 'center',
     marginBottom: 8,
   },
-
-  contentSubtitle: {
-    color: CONFIG.COLORS.GRAY,
+  termsSubtitle: {
+    color: "#6c757d",
+    fontSize: 14,
     textAlign: 'center',
-    fontWeight: '500',
-  },
-
-  termsList: {},
-
-  termItem: {},
-
-  termTitle: {
-    color: CONFIG.COLORS.PRIMARY,
-    fontWeight: '600',
-  },
-
-  termContent: {
-    color: CONFIG.COLORS.GRAY,
+    marginBottom: 20,
     lineHeight: 20,
   },
-
-  emailLink: {
-    color: '#2196F3',
-    textDecorationLine: 'underline',
+  termsScrollView: {
+    flex: 1,
   },
-
-  agreementSection: {},
-
+  termsScrollContent: {
+    paddingBottom: 10,
+  },
+  termItem: {
+    marginBottom: 16,
+  },
+  termTitle: {
+    color: "#5a67d8",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  termContent: {
+    color: "#666666",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  agreementSection: {
+    width: '100%',
+    gap: 16,
+  },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: CONFIG.COLORS.WHITE,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-
-  checkbox: {},
-
-  checkboxText: {
-    color: CONFIG.COLORS.GRAY,
-    fontWeight: '600',
-  },
-
-  errorMessage: {
-    color: CONFIG.COLORS.WHITE,
-    backgroundColor: 'rgba(255, 68, 68, 0.9)',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    marginRight: 12,
+  },
+  checkboxText: {
+    color: "#333",
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+  },
+  errorMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    overflow: 'hidden',
   },
-
-  actionContainer: {
-    alignItems: 'center',
+  errorMessage: {
+    color: "#dc3545",
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
   },
-
-  actionButton: {
-    backgroundColor: CONFIG.COLORS.SECONDARY,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    alignItems: 'center',
+  nextButton: {
+    backgroundColor: "#5a67d8",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#5a67d8",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-
-  actionButtonText: {
-    color: CONFIG.COLORS.WHITE,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    letterSpacing: 0.5,
+  nextButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
