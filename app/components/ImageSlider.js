@@ -10,14 +10,16 @@ const ImageSlider = ({ images }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (images.length > 0) {
-        const nextIndex = (activeIndex + 1) % images.length;
-        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-        setActiveIndex(nextIndex);
+        setActiveIndex(prevIndex => {
+          const nextIndex = (prevIndex + 1) % images.length;
+          flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+          return nextIndex;
+        });
       }
-    }, 2000); // 2 seconds
+    }, 1000); // 1 second
 
     return () => clearInterval(interval);
-  }, [activeIndex, images.length]);
+  }, [images.length]);
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {

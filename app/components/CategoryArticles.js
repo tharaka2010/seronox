@@ -64,18 +64,6 @@ const CategoryArticles = ({ category, ListHeaderComponent }) => {
     router.push(`/screen/article/${id}`);
   };
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#2BC4B0" style={styles.loader} />;
-  }
-
-  if (error) {
-    return <Text style={styles.errorText}>{error}</Text>;
-  }
-  
-  if (articles.length === 0) {
-    return <Text style={styles.emptyText}>No articles found in this category.</Text>;
-  }
-
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleArticlePress(item.id)}>
       <View style={styles.contentRow}>
@@ -94,12 +82,23 @@ const CategoryArticles = ({ category, ListHeaderComponent }) => {
     </TouchableOpacity>
   );
 
+  const renderListEmptyComponent = () => {
+    if (loading) {
+      return <ActivityIndicator size="large" color="#2BC4B0" style={styles.loader} />;
+    }
+    if (error) {
+      return <Text style={styles.errorText}>{error}</Text>;
+    }
+    return <Text style={styles.emptyText}>No articles found in this category.</Text>;
+  };
+
   return (
     <FlatList
       data={articles}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       ListHeaderComponent={ListHeaderComponent} // Pass the header component to the FlatList
+      ListEmptyComponent={renderListEmptyComponent}
       contentContainerStyle={styles.listContainer}
     />
   );

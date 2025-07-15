@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { memo, useState, useEffect } from "react";
+import React, { memo, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,11 @@ import {
   Dimensions,
   Platform,
   SafeAreaView,
-  ScrollView,
+  StyleSheet,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import Swiper from "react-native-swiper";
 import { useRouter } from "expo-router";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // =============================================================================
 // CONSTANTS & HELPERS
@@ -24,7 +24,7 @@ const getScreenDimensions = () => {
     return { width, height };
   } catch (error) {
     console.warn("Failed to get screen dimensions:", error);
-    return { width: 375, height: 812 }; // Default iPhone dimensions
+    return { width: 375, height: 812 };
   }
 };
 
@@ -57,46 +57,64 @@ const IMAGES = [
 ];
 
 // Logo image
-const SPLASH_LOGO = require("../assets/SplashLogo.png");
+const SERENOX_LOGO = require("../assets/SplashLogo.png");
 
-// Responsive configuration
+// Configuration
 const CONFIG = {
-  AUTOPLAY_TIMEOUT: 3,
-  GRADIENT_COLORS: ["#ffb3f5", "#ff66f0", "#4a0f4a"], // Added lighter pink at top
-  PRIMARY_COLOR: "#ff00ec",
+  AUTOPLAY_TIMEOUT: 1.5, // Slightly increased for better visibility
+  PRIMARY_COLOR: "#5a67d8",
+  SECONDARY_COLOR: "#ffffff",
+  TEXT_COLOR: "#1a1a1a",
+  SUBTITLE_COLOR: "#6c757d",
+  BACKGROUND_COLOR: "#f8f9fa",
+  ACCENT_COLOR: "#ffd700",
+  DANGER_COLOR: "#ff6b6b",
+  SUCCESS_COLOR: "#4ecdc4",
+  INFO_COLOR: "#45b7d1",
+  WARNING_COLOR: "#f39c12",
   ROUTES: {
-    SIGNIN: "/signinscreen",
-  },
-  BREAKPOINTS: {
-    SMALL: 320,
-    MEDIUM: 768,
-    LARGE: 1024,
+    SIGNIN: "/loginAuth/signinscreen",
   },
 };
+
+// =============================================================================
+// DECORATIVE COMPONENTS
+// =============================================================================
+
+const DecorativeShapes = memo(() => (
+  <View style={styles.decorativeShapes}>
+    <View style={[styles.roundShape, styles.shape1]} />
+    <View style={[styles.roundShape, styles.shape2]} />
+    <View style={[styles.roundShape, styles.shape3]} />
+    <View style={[styles.roundShape, styles.shape4]} />
+    <View style={[styles.roundShape, styles.shape5]} />
+    <View style={[styles.roundShape, styles.shape6]} />
+  </View>
+));
 
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
-export default function WelcomeScreen() {
+export default function LandingScreen() {
   const router = useRouter();
   const [dimensions, setDimensions] = useState(() => {
     const screenDimensions = getScreenDimensions();
-    return screenDimensions || { width: 375, height: 812 }; // Default fallback
+    return screenDimensions || { width: 375, height: 812 };
   });
   const [deviceType, setDeviceType] = useState(() => {
     const screenDimensions = getScreenDimensions();
     if (screenDimensions) {
       return getDeviceType(screenDimensions.width, screenDimensions.height);
     }
-    return "phone"; // Default fallback
+    return "phone";
   });
   const [orientation, setOrientation] = useState(() => {
     const screenDimensions = getScreenDimensions();
     if (screenDimensions) {
       return getOrientation(screenDimensions.width, screenDimensions.height);
     }
-    return "portrait"; // Default fallback
+    return "portrait";
   });
 
   useEffect(() => {
@@ -113,18 +131,13 @@ export default function WelcomeScreen() {
 
   const handleGetStarted = () => {
     try {
-      // Navigate to signinscreen using the correct absolute path
-      router.push("/loginAuth/signinscreen");
+      router.push(CONFIG.ROUTES.SIGNIN);
     } catch (error) {
       console.error("Navigation error:", error);
-
-      // Try alternative paths as fallback (these might still fail if the primary path is wrong)
       try {
-        router.push("./loginAuth/signinscreen"); // Relative path attempt
+        router.replace(CONFIG.ROUTES.SIGNIN);
       } catch (fallbackError) {
         console.error("Fallback navigation also failed:", fallbackError);
-        // Last resort - try replace
-        router.replace("/loginAuth/signinscreen");
       }
     }
   };
@@ -132,27 +145,23 @@ export default function WelcomeScreen() {
   const { width, height } = dimensions || { width: 375, height: 812 };
   const isTablet = deviceType === "tablet";
   const isLandscape = orientation === "landscape";
-  const isSmallScreen = width < CONFIG.BREAKPOINTS.SMALL;
 
-  // Scale factors based on device type
-  const scaleFactor = isTablet ? 1.3 : isSmallScreen ? 0.9 : 1;
-  const paddingScale = isTablet ? 1.5 : 1;
+  const scaleFactor = isTablet ? 1.3 : width < 320 ? 0.9 : 1;
 
   return (
-    <SafeAreaView style={{
-      flex: 1,
-      backgroundColor: CONFIG.GRADIENT_COLORS[2], // Use darkest color as fallback
-    }}>
-      <LinearGradient colors={CONFIG.GRADIENT_COLORS} style={{ flex: 1 }}>
-        <StatusBar style="light" />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        
+        {/* Decorative Background Elements */}
+        <DecorativeShapes />
 
-        {orientation === "landscape" ? (
+        {isLandscape ? (
           <LandscapeLayout
             dimensions={dimensions}
             deviceType={deviceType}
             onGetStarted={handleGetStarted}
             scaleFactor={scaleFactor}
-            paddingScale={paddingScale}
           />
         ) : (
           <PortraitLayout
@@ -160,10 +169,9 @@ export default function WelcomeScreen() {
             deviceType={deviceType}
             onGetStarted={handleGetStarted}
             scaleFactor={scaleFactor}
-            paddingScale={paddingScale}
           />
         )}
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -173,87 +181,57 @@ export default function WelcomeScreen() {
 // =============================================================================
 
 const PortraitLayout = memo(
-  ({ dimensions, deviceType, onGetStarted, scaleFactor, paddingScale }) => {
+  ({ dimensions, deviceType, onGetStarted, scaleFactor }) => {
     const { width, height } = dimensions;
-    const isTablet = deviceType === "tablet";
-    const isLandscape = false;
 
     return (
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "space-between",
-          paddingHorizontal: Math.max(20, width * 0.05) * paddingScale,
-          paddingVertical: 40,
-        }}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        <Header 
-          dimensions={dimensions}
-          deviceType={deviceType}
-          scaleFactor={scaleFactor}
-          isLandscape={isLandscape}
-        />
-        <ImageCarousel
-          dimensions={dimensions}
-          deviceType={deviceType}
-          scaleFactor={scaleFactor}
-          paddingScale={paddingScale}
-          isLandscape={isLandscape}
-        />
-        <ActionButton
-          onPress={onGetStarted}
-          dimensions={dimensions}
-          scaleFactor={scaleFactor}
-          isLandscape={isLandscape}
-        />
-      </ScrollView>
+      <View style={styles.portraitContainer}>
+        {/* Header Section with Larger Logo */}
+        <View style={styles.headerSection}>
+          <SerenoxLogo scaleFactor={scaleFactor} />
+        </View>
+
+        {/* Image Carousel Section */}
+        <View style={styles.carouselSection}>
+          <ImageCarousel
+            dimensions={dimensions}
+            deviceType={deviceType}
+            scaleFactor={scaleFactor}
+          />
+        </View>
+
+        {/* Action Button Section */}
+        <View style={styles.actionSection}>
+          <GetStartedButton
+            onPress={onGetStarted}
+            dimensions={dimensions}
+            scaleFactor={scaleFactor}
+          />
+        </View>
+      </View>
     );
   }
 );
 
 const LandscapeLayout = memo(
-  ({ dimensions, deviceType, onGetStarted, scaleFactor, paddingScale }) => {
+  ({ dimensions, deviceType, onGetStarted, scaleFactor }) => {
     const { width, height } = dimensions;
-    const isLandscape = true;
 
     return (
-      <View style={{
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: Math.max(20, width * 0.05),
-        paddingVertical: 20,
-      }}>
-        <View style={{
-          flex: 1,
-          justifyContent: "center",
-          paddingRight: 20,
-        }}>
-          <Header 
-            dimensions={dimensions}
-            deviceType={deviceType}
-            scaleFactor={scaleFactor}
-            isLandscape={isLandscape}
-          />
-          <ActionButton
+      <View style={styles.landscapeContainer}>
+        <View style={styles.landscapeLeft}>
+          <SerenoxLogo scaleFactor={scaleFactor} />
+          <GetStartedButton
             onPress={onGetStarted}
             dimensions={dimensions}
             scaleFactor={scaleFactor}
-            isLandscape={isLandscape}
           />
         </View>
-        <View style={{
-          flex: 1,
-          justifyContent: "center",
-        }}>
+        <View style={styles.landscapeRight}>
           <ImageCarousel
             dimensions={dimensions}
             deviceType={deviceType}
             scaleFactor={scaleFactor}
-            paddingScale={paddingScale}
-            isLandscape={isLandscape}
           />
         </View>
       </View>
@@ -265,148 +243,288 @@ const LandscapeLayout = memo(
 // CHILD COMPONENTS
 // =============================================================================
 
-const Header = memo(({ dimensions, deviceType, scaleFactor, isLandscape }) => {
+const SerenoxLogo = memo(({ scaleFactor }) => (
+  <View style={styles.logoContainer}>
+    <Image
+      source={SERENOX_LOGO}
+      style={[
+        styles.logo,
+        {
+          width: 600 * scaleFactor,
+          height: 400 * scaleFactor,
+        }
+      ]}
+      accessibilityLabel="Serenox app logo"
+      resizeMode="contain"
+      onError={(error) => {
+        console.warn("Failed to load logo:", error);
+      }}
+    />
+  </View>
+));
+
+const ImageCarousel = memo(({ dimensions, deviceType, scaleFactor }) => {
   const { width, height } = dimensions;
   const isTablet = deviceType === "tablet";
 
   return (
-    <View style={{
-      alignItems: "center",
-      marginTop: isLandscape ? 0 : Platform.OS === "ios" ? 40 : 20,
-      paddingHorizontal: 10,
-    }}>
-
-      
-      <Image
-        source={SPLASH_LOGO}
+    <View style={styles.carouselContainer}>
+      <Swiper
+        autoplay={true}
+        loop={true}
+        autoplayTimeout={CONFIG.AUTOPLAY_TIMEOUT}
+        showsPagination={true}
+        paginationStyle={styles.pagination}
+        dotStyle={styles.paginationDot}
+        activeDotStyle={styles.paginationActiveDot}
         style={{
-          width: Math.max(200, Math.min(100, width * 0.50)) * scaleFactor,
-          height: Math.max(210, Math.min(100, width * 0.50)) * scaleFactor,
-          marginBottom: 0,
+          height: Math.max(height * 0.4, 300),
         }}
-        accessibilityLabel="Serenox app logo"
-        resizeMode="contain"
-        onError={(error) => {
-          console.warn("Failed to load splash logo:", error);
-        }}
-      />
+        width={width}
+        accessibilityLabel="Image carousel showcasing app features"
+        autoplayDirection={true}
+        removeClippedSubviews={false}
+        horizontal={true}
+        pagingEnabled={true}
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        scrollEnabled={true}
+      >
+        {IMAGES.map((image, index) => (
+          <ImageSlide
+            key={`slide-${index}`}
+            image={image}
+            index={index}
+            dimensions={dimensions}
+            deviceType={deviceType}
+            scaleFactor={scaleFactor}
+          />
+        ))}
+      </Swiper>
     </View>
   );
 });
 
-const ImageCarousel = memo(
-  ({ dimensions, deviceType, scaleFactor, paddingScale, isLandscape }) => {
-    const { width, height } = dimensions;
-    const isTablet = deviceType === "tablet";
-
-    return (
-      <View style={{
-        flex: isLandscape ? 1 : 0,
-        marginVertical: isLandscape ? 0 : 10,
-      }}>
-        <Swiper
-          autoplay
-          loop
-          autoplayTimeout={CONFIG.AUTOPLAY_TIMEOUT}
-          showsPagination={false}
-          style={{
-            height: isLandscape
-              ? Math.min(height * 0.85, 500) // Increased from height * 1 and 400
-              : Math.max(height * 0.45, 320), // Increased from height * 0.35 and 250
-          }}
-          accessibilityLabel="Image carousel showcasing app features"
-        >
-          {IMAGES.map((image, index) => (
-            <ImageSlide
-              key={index}
-              image={image}
-              index={index}
-              dimensions={dimensions}
-              deviceType={deviceType}
-              paddingScale={paddingScale}
-              isLandscape={isLandscape}
-            />
-          ))}
-        </Swiper>
-      </View>
-    );
-  }
-);
-
-const ImageSlide = memo(({ image, index, dimensions, deviceType, paddingScale, isLandscape }) => {
+const ImageSlide = memo(({ image, index, dimensions, deviceType, scaleFactor }) => {
   const { width, height } = dimensions;
   const isTablet = deviceType === "tablet";
 
   return (
-    <View style={{
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: isTablet ? 40 : 20,
-    }}>
+    <View style={styles.slideContainer}>
       <Image
         source={image}
-        style={{
-          width: isLandscape
-            ? Math.min(width * 0.4, 350)
-            : Math.min(width - 40 * paddingScale, 400),
-          height: isLandscape
-            ? Math.min(height * 0.7, 380) // Increased from height * 0.6 and 300
-            : Math.max(height * 0.4, 280), // Increased from height * 0.3 and 200
-          borderRadius: isTablet ? 20 : 15,
-        }}
+        style={[
+          styles.slideImage,
+          {
+            width: Math.min(width * 0.7, 300),
+            height: Math.min(height * 0.3, 250),
+          }
+        ]}
         accessibilityLabel={`Feature showcase image ${index + 1}`}
         onError={(error) => {
           console.warn(`Failed to load image ${index + 1}:`, error);
         }}
-        resizeMode="cover" // Change to "contain" if you want to see full image without cropping
+        resizeMode="cover"
       />
     </View>
   );
 });
 
-const ActionButton = memo(({ onPress, dimensions, scaleFactor, isLandscape }) => {
-  const { width, height } = dimensions;
+const GetStartedButton = memo(({ onPress, dimensions, scaleFactor }) => {
+  const { width } = dimensions;
 
   return (
-    <View style={{
-      alignItems: "center",
-      marginTop: isLandscape ? 20 : Math.max(30, height * 0.04),
-      marginBottom: isLandscape ? 0 : 20,
-    }}>
-      <TouchableOpacity
-        style={{
-          backgroundColor: CONFIG.PRIMARY_COLOR,
-          elevation: 3,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          paddingVertical: Math.max(12, 16 * scaleFactor),
-          paddingHorizontal: Math.max(32, 40 * scaleFactor),
-          borderRadius: Math.max(25, 30 * scaleFactor),
-          minWidth: Math.max(140, 160 * scaleFactor),
-        }}
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel="Get started with Serenox"
-        accessibilityHint="Navigates to the signin screen"
-        activeOpacity={0.8}
-      >
-        <Text
-          style={{
-            color: "#fff",
-            fontWeight: "bold",
-            textAlign: "center",
-            letterSpacing: 0.5,
-            fontSize: Math.max(16, 18 * scaleFactor),
-          }}
-        >
-          Get Started
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={[
+        styles.getStartedButton,
+        {
+          paddingVertical: 16 * scaleFactor,
+          paddingHorizontal: 32 * scaleFactor,
+          borderRadius: 12 * scaleFactor,
+          minWidth: Math.max(200, width * 0.8),
+        }
+      ]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Get started with Serenox"
+      accessibilityHint="Navigate to sign in screen"
+      activeOpacity={0.8}
+    >
+      <Text style={[styles.buttonText, { fontSize: 18 * scaleFactor }]}>
+        Get Started
+      </Text>
+    </TouchableOpacity>
   );
+});
+
+// =============================================================================
+// STYLES
+// =============================================================================
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: CONFIG.BACKGROUND_COLOR,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: CONFIG.BACKGROUND_COLOR,
+  },
+  decorativeShapes: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  roundShape: {
+    position: 'absolute',
+    borderRadius: 1000,
+    opacity: 0.15,
+  },
+  shape1: {
+    width: 200,
+    height: 200,
+    backgroundColor: CONFIG.PRIMARY_COLOR,
+    top: -50,
+    right: -50,
+  },
+  shape2: {
+    width: 150,
+    height: 150,
+    backgroundColor: CONFIG.ACCENT_COLOR,
+    top: '20%',
+    left: -30,
+  },
+  shape3: {
+    width: 80,
+    height: 80,
+    backgroundColor: CONFIG.DANGER_COLOR,
+    top: '60%',
+    right: '10%',
+  },
+  shape4: {
+    width: 60,
+    height: 60,
+    backgroundColor: CONFIG.SUCCESS_COLOR,
+    bottom: '15%',
+    left: '5%',
+  },
+  shape5: {
+    width: 40,
+    height: 40,
+    backgroundColor: CONFIG.INFO_COLOR,
+    top: '40%',
+    right: '5%',
+  },
+  shape6: {
+    width: 100,
+    height: 100,
+    backgroundColor: CONFIG.WARNING_COLOR,
+    bottom: -30,
+    right: '20%',
+  },
+  portraitContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    zIndex: 1,
+  },
+  headerSection: {
+    alignItems: 'center',
+    marginTop: Platform.OS === 'ios' ? 0 : 0,
+    zIndex: 2,
+  },
+  carouselSection: {
+    flex: 1,
+    justifyContent: 'center',
+    marginVertical: 10,
+    zIndex: 2,
+  },
+  actionSection: {
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  landscapeContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 20,
+    zIndex: 1,
+  },
+  landscapeLeft: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingRight: 20,
+    zIndex: 2,
+  },
+  landscapeRight: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  logoContainer: {
+    alignItems: 'center',
+  },
+  logo: {
+    maxWidth: 550,
+    maxHeight: 250,
+  },
+  carouselContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  pagination: {
+    bottom: 10,
+  },
+  paginationDot: {
+    backgroundColor: 'rgba(90, 103, 216, 0.3)',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  paginationActiveDot: {
+    backgroundColor: CONFIG.PRIMARY_COLOR,
+    width: 12,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  slideContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  slideImage: {
+    borderRadius: 20,
+  },
+  getStartedButton: {
+    backgroundColor: CONFIG.PRIMARY_COLOR,
+    shadowColor: CONFIG.PRIMARY_COLOR,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: CONFIG.SECONDARY_COLOR,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    color: CONFIG.SUBTITLE_COLOR,
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 320,
+  },
 });
