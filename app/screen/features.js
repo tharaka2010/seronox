@@ -1,48 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
-  TextInput,
   StyleSheet, 
   Animated, 
   Dimensions, 
   TouchableOpacity,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  SafeAreaView
+  StatusBar
 } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { getDoc, doc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useRouter } from 'expo-router';
-import { registerForPushNotificationsAsync } from '../utils/notifications';
 import LottieView from 'lottie-react-native';
+import BottomNav from '../../components/BottomNav';
 
 const { width, height } = Dimensions.get('window');
 
-export default function FeaturesScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
-
+export default function Features() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
-  const particleAnims = useRef([...Array(6)].map(() => new Animated.Value(0))).current;
-  const [particlePositions] = useState(
-    [...Array(6)].map(() => ({
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-    }))
-  );
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const waveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Staggered entrance animations
@@ -91,119 +70,107 @@ export default function FeaturesScreen() {
       })
     ).start();
 
-    // Particle animations
-    const animations = particleAnims.map((anim) => {
-        return Animated.loop(
-            Animated.sequence([
-                Animated.timing(anim, {
-                    toValue: 1,
-                    duration: 3000 + Math.random() * 2000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(anim, {
-                    toValue: 0,
-                    duration: 3000 + Math.random() * 2000,
-                    useNativeDriver: true,
-                }),
-            ])
-        );
-    });
-    Animated.stagger(500, animations).start();
+    // Floating animation for Lottie container
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Rotation animation for backdrop
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 20000,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Wave animation for gradient layers
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(waveAnim, {
+          toValue: 1,
+          duration: 4000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(waveAnim, {
+          toValue: 0,
+          duration: 4000,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
   }, []);
 
-  const handleLogin = async () => {
-    setErrorMessage('');
-    setIsLoading(true);
-    
-    if (!email || !password) {
-      setErrorMessage('Please enter both email and password.');
-      setIsLoading(false);
-      return;
-    }
-    
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Check if the user has accepted the terms
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists() && userDoc.data().termsAccepted) {
-        // User has accepted terms, go to main landing
-        router.replace('/screen/mainLanding');
-      } else {
-        // User has not accepted terms, go to terms screen
-        router.replace('/screen/profile/terms');
-      }
-      
-      await registerForPushNotificationsAsync(user);
-    } catch (error) {
-      console.error("Login error:", error.message);
-      let userMessage = "An unexpected error occurred during login.";
-      if (error.code === 'auth/invalid-email') {
-        userMessage = 'That email address is invalid!';
-      } else if (error.code === 'auth/user-disabled') {
-        userMessage = 'This user has been disabled.';
-      } else if (error.code === 'auth/user-not-found') {
-        userMessage = 'No user found with this email.';
-      } else if (error.code === 'auth/wrong-password') {
-        userMessage = 'Wrong password.';
-      } else if (error.code === 'auth/too-many-requests') {
-        userMessage = 'Too many failed login attempts. Please try again later.';
-      }
-      setErrorMessage(userMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const navigateToSignUp = () => {
-    router.push('/loginAuth/signupscreen');
-  };
-
-  const navigateToForgotPassword = () => {
-    router.push('/loginAuth/forgotPassword');
+  const handleNotifyMe = () => {
+    // Add haptic feedback or notification logic here
+    console.log('Notify me pressed');
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#6C5CE7" />
       
-      {/* Background with gradient effect using Views */}
+      {/* Enhanced Background with animated gradient layers */}
       <View style={styles.gradientBackground}>
         <View style={styles.gradientLayer1} />
-        <View style={styles.gradientLayer2} />
-        <View style={styles.gradientLayer3} />
+        <Animated.View 
+          style={[
+            styles.gradientLayer2, 
+            {
+              opacity: waveAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.6, 0.9],
+              }),
+            }
+          ]} 
+        />
+        <Animated.View 
+          style={[
+            styles.gradientLayer3, 
+            {
+              opacity: waveAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.4, 0.7],
+              }),
+            }
+          ]} 
+        />
+        
+        {/* Additional gradient overlay for depth */}
+        <View style={styles.gradientOverlay} />
       </View>
 
-      {/* Floating particles background */}
+      {/* Enhanced floating particles with different sizes and animations */}
       <View style={styles.particlesContainer}>
-        {[...Array(6)].map((_, i) => (
+        {[...Array(12)].map((_, i) => (
           <Animated.View
             key={i}
             style={[
               styles.particle,
               {
-                left: particlePositions[i].left,
-                top: particlePositions[i].top,
-                opacity: particleAnims[i].interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0.3, 1, 0.3],
-                }),
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: Math.random() * 6 + 2,
+                height: Math.random() * 6 + 2,
+                opacity: Math.random() * 0.8 + 0.2,
                 transform: [
-                    {
-                        translateY: particleAnims[i].interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, -30],
-                        }),
-                    },
-                    {
-                        scale: particleAnims[i].interpolate({
-                            inputRange: [0, 0.5, 1],
-                            outputRange: [1, 1.5, 1],
-                        }),
-                    }
+                  {
+                    translateY: floatAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -20 - (i * 2)],
+                    }),
+                  },
                 ],
               },
             ]}
@@ -211,194 +178,210 @@ export default function FeaturesScreen() {
         ))}
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      {/* Decorative geometric shapes */}
+      <View style={styles.decorativeShapes}>
+        <Animated.View 
+          style={[
+            styles.geometricShape,
+            styles.shape1,
+            {
+              transform: [
+                {
+                  rotate: rotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg'],
+                  }),
+                },
+              ],
+            },
+          ]} 
+        />
+        <Animated.View 
+          style={[
+            styles.geometricShape,
+            styles.shape2,
+            {
+              transform: [
+                {
+                  rotate: rotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['360deg', '0deg'],
+                  }),
+                },
+              ],
+            },
+          ]} 
+        />
+        <Animated.View 
+          style={[
+            styles.geometricShape,
+            styles.shape3,
+            {
+              transform: [
+                {
+                  scale: pulseAnim.interpolate({
+                    inputRange: [0.95, 1.05],
+                    outputRange: [1, 1.2],
+                  }),
+                },
+              ],
+            },
+          ]} 
+        />
+      </View>
+
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [
+              { translateY: slideAnim },
+              { scale: scaleAnim },
+            ],
+          },
+        ]}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Enhanced Lottie Animation with multiple backdrop layers */}
+        <Animated.View 
+          style={[
+            styles.lottieContainer,
+            {
+              transform: [
+                {
+                  translateY: floatAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, -10],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          {/* Multiple backdrop layers for depth */}
+          <Animated.View 
+            style={[
+              styles.lottieBackdrop,
+              styles.backdrop1,
+              {
+                transform: [
+                  {
+                    rotate: rotateAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0deg', '360deg'],
+                    }),
+                  },
+                ],
+              },
+            ]} 
+          />
+          <Animated.View 
+            style={[
+              styles.lottieBackdrop,
+              styles.backdrop2,
+              {
+                transform: [
+                  {
+                    rotate: rotateAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['360deg', '0deg'],
+                    }),
+                  },
+                ],
+              },
+            ]} 
+          />
+          <View style={[styles.lottieBackdrop, styles.backdrop3]} />
+          
+          <LottieView
+            source={{
+              uri: 'https://lottie.host/8f0c5f29-1f6c-4900-9077-118b4ab24b6e/3y6Y9XyG8g.json',
+            }}
+            autoPlay
+            loop
+            style={styles.lottie}
+          />
+        </Animated.View>
+
+        {/* Enhanced title with multiple shimmer layers */}
+        <Animated.View style={styles.titleContainer}>
           <Animated.View
             style={[
-              styles.content,
+              styles.shimmerOverlay,
+              styles.shimmer1,
               {
-                opacity: fadeAnim,
                 transform: [
-                  { translateY: slideAnim },
-                  { scale: scaleAnim },
+                  {
+                    translateX: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-width, width],
+                    }),
+                  },
                 ],
               },
             ]}
-          >
-            {/* Lottie Animation with backdrop */}
-            <View style={styles.lottieContainer}>
-              <View style={styles.lottieBackdrop} />
-              <LottieView
-                source={{
-                  uri: 'https://lottie.host/8f0c5f29-1f6c-4900-9077-118b4ab24b6e/3y6Y9XyG8g.json',
-                }}
-                autoPlay
-                loop
-                style={styles.lottie}
-              />
-            </View>
-
-            {/* Animated title with shimmer effect */}
-            <Animated.View style={styles.titleContainer}>
-              <Animated.View
-                style={[
-                  styles.shimmerOverlay,
+          />
+          <Animated.View
+            style={[
+              styles.shimmerOverlay,
+              styles.shimmer2,
+              {
+                transform: [
                   {
-                    transform: [
-                      {
-                        translateX: shimmerAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [-width, width],
-                        }),
-                      },
-                    ],
+                    translateX: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-width * 0.5, width * 1.5],
+                    }),
                   },
-                ]}
-              />
-              <Text style={styles.title}>Welcome Back</Text>
-            </Animated.View>
+                ],
+              },
+            ]}
+          />
+          <Text style={styles.title}>Coming Soon!</Text>
+          <View style={styles.titleGlow} />
+        </Animated.View>
 
-            {/* Subtitle with fade in */}
-            <Animated.View
-              style={[
-                styles.subtitleContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <Text style={styles.subtitle}>
-                Sign in to your account to continue your journey
-              </Text>
-            </Animated.View>
+        {/* Enhanced subtitle with glassmorphism container */}
+        <Animated.View
+          style={[
+            styles.subtitleContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.subtitleGlass}>
+            <Text style={styles.subtitle}>
+              Get ready to explore one of our exciting new features — launching soon! 
+              Stay tuned and stay with us for the experience.
+            </Text>
+          </View>
+        </Animated.View>
 
-            {/* Form Section */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <View style={styles.inputWrapper}>
-                <MaterialIcons
-                  name="mail"
-                  size={20}
-                  color="rgba(255, 255, 255, 0.8)"
-                  style={styles.icon}
-                />
-                <TextInput
-                  placeholder="Email"
-                  placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                  style={styles.textInput}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
+        {/* Enhanced feature tags with staggered animations */}
+        <Animated.View
+          style={[
+            styles.featuresContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          
+        </Animated.View>
 
-              <View style={styles.inputWrapper}>
-                <MaterialIcons
-                  name="lock"
-                  size={20}
-                  color="rgba(255, 255, 255, 0.8)"
-                  style={styles.icon}
-                />
-                <TextInput
-                  placeholder="Password"
-                  placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                  secureTextEntry={!showPassword}
-                  style={styles.textInput}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIcon}
-                >
-                  <MaterialIcons
-                    name={showPassword ? "visibility" : "visibility-off"}
-                    size={20}
-                    color="rgba(255, 255, 255, 0.8)"
-                  />
-                </TouchableOpacity>
-              </View>
+        {/* Enhanced notify button with gradient and glow effect */}
+      </Animated.View>
 
-              {errorMessage ? (
-                <Animated.View
-                  style={[
-                    styles.errorMessageContainer,
-                    {
-                      opacity: fadeAnim,
-                    },
-                  ]}
-                >
-                  <MaterialIcons name="error" size={16} color="#FF6B6B" />
-                  <Text style={styles.errorMessage}>{errorMessage}</Text>
-                </Animated.View>
-              ) : null}
-
-              <Animated.View
-                style={[
-                  styles.buttonContainer,
-                  {
-                    transform: [{ scale: pulseAnim }],
-                  },
-                ]}
-              >
-                <TouchableOpacity
-                  onPress={handleLogin}
-                  style={[styles.signInButton, isLoading && styles.signInButtonDisabled]}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.buttonText}>
-                    {isLoading ? 'Signing In...' : 'Sign In'}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-
-              <TouchableOpacity
-                onPress={navigateToForgotPassword}
-                style={styles.forgotPasswordContainer}
-              >
-                <Text style={styles.forgotPasswordText}>
-                  Forgot password?
-                </Text>
-              </TouchableOpacity>
-
-              {/* Divider */}
-              <View style={styles.dividerContainer}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <TouchableOpacity
-                onPress={navigateToSignUp}
-                style={styles.signUpContainer}
-              >
-                <Text style={styles.signUpText}>
-                  Don't have an account?{' '}
-                  <Text style={styles.signUpLink}>Sign Up</Text>
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <BottomNav />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: '#6C5CE7',
   },
@@ -424,7 +407,6 @@ const styles = StyleSheet.create({
     top: height * 0.3,
     height: height * 0.4,
     backgroundColor: '#A29BFE',
-    opacity: 0.8,
   },
   gradientLayer3: {
     position: 'absolute',
@@ -433,7 +415,14 @@ const styles = StyleSheet.create({
     top: height * 0.6,
     height: height * 0.4,
     backgroundColor: '#74B9FF',
-    opacity: 0.6,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: height,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   particlesContainer: {
     position: 'absolute',
@@ -442,16 +431,41 @@ const styles = StyleSheet.create({
   },
   particle: {
     position: 'absolute',
-    width: 4,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: 50,
   },
-  keyboardAvoidingContainer: {
-    flex: 1,
+  decorativeShapes: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
-  scrollContent: {
-    flexGrow: 1,
+  geometricShape: {
+    position: 'absolute',
+    borderRadius: 8,
+  },
+  shape1: {
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    top: '15%',
+    right: '10%',
+    borderRadius: 30,
+  },
+  shape2: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    top: '75%',
+    left: '15%',
+    borderRadius: 8,
+  },
+  shape3: {
+    width: 25,
+    height: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    top: '35%',
+    left: '8%',
+    borderRadius: 12,
   },
   content: {
     flex: 1,
@@ -459,31 +473,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     zIndex: 1,
-    minHeight: height * 0.9,
   },
   lottieContainer: {
     position: 'relative',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   lottieBackdrop: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    top: -10,
-    left: -10,
+    borderRadius: 140,
+    top: -15,
+    left: -15,
     zIndex: 0,
   },
+  backdrop1: {
+    width: 280,
+    height: 280,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  backdrop2: {
+    width: 260,
+    height: 260,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    top: -5,
+    left: -5,
+    borderRadius: 130,
+  },
+  backdrop3: {
+    width: 240,
+    height: 240,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    top: 5,
+    left: 5,
+    borderRadius: 120,
+  },
   lottie: {
-    width: 180,
-    height: 180,
+    width: 250,
+    height: 250,
     zIndex: 1,
   },
   titleContainer: {
     position: 'relative',
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   shimmerOverlay: {
     position: 'absolute',
@@ -491,154 +524,129 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     width: 100,
     transform: [{ skewX: '-20deg' }],
   },
+  shimmer1: {
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  shimmer2: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 80,
+  },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 42,
+    fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-    letterSpacing: 1,
+    textShadowRadius: 8,
+    letterSpacing: 2,
+  },
+  titleGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    zIndex: -1,
   },
   subtitleContainer: {
-    marginBottom: 30,
+    marginBottom: 40,
+    alignItems: 'center',
+  },
+  subtitleGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(10px)',
   },
   subtitle: {
     fontSize: 16,
     color: '#FFFFFF',
     textAlign: 'center',
+    lineHeight: 26,
+    opacity: 0.95,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 40,
+    gap: 12,
+  },
+  featureTag: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: 20,
-    lineHeight: 24,
-    opacity: 0.9,
+    paddingVertical: 10,
+    borderRadius: 25,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: 'rgba(255, 255, 255, 0.3)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  featureText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  formContainer: {
-    width: '100%',
-    maxWidth: 350,
-    gap: 16,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 25,
-    height: 54,
-    shadowColor: 'rgba(0, 0, 0, 0.2)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  textInput: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  icon: {
-    marginRight: 12,
-  },
-  eyeIcon: {
-    padding: 4,
-  },
-  errorMessageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 107, 107, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: -4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
-  },
-  errorMessage: {
-    color: "#FF6B6B",
-    fontSize: 14,
-    marginLeft: 8,
-    flex: 1,
-    fontWeight: '500',
-  },
   buttonContainer: {
-    marginTop: 10,
+    marginTop: 20,
+    position: 'relative',
   },
-  signInButton: {
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 25,
-    alignItems: 'center',
+  notifyButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+    elevation: 10,
     shadowColor: '#FF6B6B',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 12,
+    backgroundColor: '#FF6B6B',
+    position: 'relative',
   },
-  signInButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    shadowOpacity: 0.2,
+  buttonGlow: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    right: -5,
+    bottom: -5,
+    backgroundColor: 'rgba(255, 107, 107, 0.3)',
+    borderRadius: 35,
+    zIndex: 0,
+  },
+  buttonGradient: {
+    paddingHorizontal: 50,
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF6B6B',
+    borderRadius: 30,
+    zIndex: 1,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    fontWeight: '800',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  forgotPasswordContainer: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  forgotPasswordText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  dividerText: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
-    marginHorizontal: 16,
-    fontWeight: '500',
-  },
-  signUpContainer: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  signUpText: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  signUpLink: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    textShadowRadius: 3,
+    letterSpacing: 1,
   },
 });
