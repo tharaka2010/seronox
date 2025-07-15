@@ -17,7 +17,6 @@ const getDeviceType = (width) => {
 
 const NAV_ITEMS = [
   { name: "Home", icon: AntDesign, iconName: "home", route: "/screen/mainLanding" },
-  { name: "Features", icon: Ionicons, iconName: "star-outline", route: "/screen/features" },
   { name: "News", icon: FontAwesome5, iconName: "newspaper", route: "/screen/news" },
   { name: "Notifications", icon: Feather, iconName: "bell", route: "/screen/notification" },
   { name: "Profile", icon: Ionicons, iconName: "person-outline", route: "/screen/profile" },
