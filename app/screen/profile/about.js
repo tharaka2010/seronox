@@ -23,8 +23,8 @@ const AboutScreen = () => {
         <Text style={styles.paragraph}>
           For more detailed articles, resources, and community discussions, please visit our official website.
         </Text>
-        <TouchableOpacity onPress={() => Linking.openURL('https://your-website.com')}>
-          <Text style={styles.link}>www.your-website.com</Text>
+        <TouchableOpacity onPress={() => Linking.openURL('https://sexeducation-c0902.web.app')}>
+          <Text style={styles.link}>sexeducation-c0902.web.app</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

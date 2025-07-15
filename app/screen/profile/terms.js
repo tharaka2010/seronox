@@ -3,6 +3,54 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+const TERMS_DATA = [
+  {
+    id: 1,
+    title: "Acceptance of Terms",
+    content: "By accessing or using our Serenox app, you agree to abide by these terms and conditions. Your continued use of the application constitutes acceptance of all policies outlined herein.",
+  },
+  {
+    id: 2,
+    title: "Responsible Usage",
+    content: "You must use the app responsibly and in compliance with all applicable laws and regulations. This includes respecting educational content and using features as intended.",
+  },
+  {
+    id: 3,
+    title: "User Conduct",
+    content: "• Do not use the app for any illegal or unauthorized purposes\n• Respect the privacy and rights of other users\n• Maintain appropriate behavior in all interactions\n• Report any misuse or inappropriate content",
+  },
+  {
+    id: 4,
+    title: "Data and Privacy",
+    content: "• Your personal information will be handled according to our Privacy Policy\n• You agree not to misuse or share other users' data\n• We implement security measures to protect your information\n• You have control over your data and privacy settings",
+  },
+  {
+    id: 5,
+    title: "Prohibited Activities",
+    content: "The following activities are strictly prohibited:\n• Unauthorized distribution of app content\n• Attempting to harm or hack the app\n• Misrepresentation of your identity\n• Sharing inappropriate or harmful content\n• Circumventing security measures",
+  },
+  {
+    id: 6,
+    title: "Content Disclaimer",
+    content: "The information provided in the app is for educational purposes only. We do not guarantee its accuracy or completeness. Always consult with healthcare professionals for medical advice.",
+  },
+  {
+    id: 7,
+    title: "Changes to Terms",
+    content: "We reserve the right to update or modify these terms at any time. Continued use of the app indicates your acceptance of the updated terms. Users will be notified of significant changes.",
+  },
+  {
+    id: 8,
+    title: "Termination",
+    content: "Failure to comply with these terms may result in the termination of your account or access to the app. We reserve the right to suspend or terminate access for violations.",
+  },
+  {
+    id: 9,
+    title: "Contact Us",
+    content: "If you have any questions about these terms, please contact us at support@serenox.com.",
+  },
+];
+
 const TermsAndConditionsScreen = () => {
   const router = useRouter();
 
@@ -15,30 +63,14 @@ const TermsAndConditionsScreen = () => {
         <Text style={styles.headerTitle}>Terms & Conditions</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>1. Introduction</Text>
-        <Text style={styles.paragraph}>
-          Welcome to our application. By using our app, you agree to be bound by these Terms and Conditions. Please read them carefully.
-        </Text>
-
-        <Text style={styles.sectionTitle}>2. Use of the App</Text>
-        <Text style={styles.paragraph}>
-          You agree to use this app only for lawful purposes and in a way that does not infringe the rights of, restrict, or inhibit anyone else's use and enjoyment of the app.
-        </Text>
-
-        <Text style={styles.sectionTitle}>3. Intellectual Property</Text>
-        <Text style={styles.paragraph}>
-          All content included in the app, such as text, graphics, logos, and images, is our property or the property of our content suppliers and is protected by international copyright laws.
-        </Text>
-
-        <Text style={styles.sectionTitle}>4. Limitation of Liability</Text>
-        <Text style={styles.paragraph}>
-          The information provided in this app is for educational purposes only and is not a substitute for professional medical advice. We are not liable for any decisions made based on the information provided.
-        </Text>
-
-        <Text style={styles.sectionTitle}>5. Changes to Terms</Text>
-        <Text style={styles.paragraph}>
-          We reserve the right to make changes to these Terms and Conditions at any time. Your continued use of the app will be deemed as acceptance of any new terms.
-        </Text>
+        {TERMS_DATA.map((term) => (
+          <View key={term.id}>
+            <Text style={styles.sectionTitle}>{term.id}. {term.title}</Text>
+            <Text style={styles.paragraph}>
+              {term.content}
+            </Text>
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
