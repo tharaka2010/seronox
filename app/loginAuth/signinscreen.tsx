@@ -14,7 +14,8 @@ import {
   Dimensions
 } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { getDoc, doc } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from 'expo-router';
 import { registerForPushNotificationsAsync } from '../utils/notifications';
@@ -41,8 +42,21 @@ const LoginScreen = () => {
     
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await registerForPushNotificationsAsync(userCredential.user);
-      router.replace('/home'); // Use replace to prevent going back to login screen
+      const user = userCredential.user;
+
+      // Check if the user has accepted the terms
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists() && userDoc.data().termsAccepted) {
+        // User has accepted terms, go to main landing
+        router.replace('/screen/mainLanding');
+      } else {
+        // User has not accepted terms, go to terms screen
+        router.replace('/home');
+      }
+      
+      await registerForPushNotificationsAsync(user);
     } catch (error: any) {
       console.error("Login error:", error.message);
       let userMessage = "An unexpected error occurred during login.";

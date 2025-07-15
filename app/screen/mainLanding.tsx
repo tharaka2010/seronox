@@ -18,6 +18,8 @@ import BottomNav from "../../components/BottomNav";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { submitFeedback } from "../utils/feedback";
+import { auth, db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 // =============================================================================
 // CONSTANTS & HELPERS
@@ -85,8 +87,33 @@ export default function Mainpage() {
   const [suggestion, setSuggestion] = useState("");
   const [dimensions, setDimensions] = useState(getScreenDimensions());
   const [deviceType, setDeviceType] = useState(getDeviceType(dimensions.width));
+  const [timeOfDayGreeting, setTimeOfDayGreeting] = useState("Welcome");
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
+    const fetchUserDataAndSetGreeting = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const name = userDoc.exists() ? userDoc.data().name.split(' ')[0] : "User";
+        setUserName(name);
+        
+        const currentHour = new Date().getHours();
+        let greeting = "Welcome";
+        if (currentHour < 12) {
+          greeting = "Good Morning";
+        } else if (currentHour < 18) {
+          greeting = "Good Afternoon";
+        } else {
+          greeting = "Good Evening";
+        }
+        setTimeOfDayGreeting(greeting);
+      }
+    };
+
+    fetchUserDataAndSetGreeting();
+
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions(window);
       setDeviceType(getDeviceType(window.width));
@@ -139,7 +166,11 @@ export default function Mainpage() {
           contentContainerStyle={responsiveStyles.scrollContent}
         >
           {/* Hero Section */}
-          <HeroSection responsiveStyles={responsiveStyles} />
+          <HeroSection 
+            responsiveStyles={responsiveStyles} 
+            timeOfDayGreeting={timeOfDayGreeting} 
+            userName={userName} 
+          />
 
           {/* Categories Section */}
           <CategoriesSection
@@ -174,7 +205,7 @@ export default function Mainpage() {
 // COMPONENTS
 // =============================================================================
 
-const HeroSection = ({ responsiveStyles }) => (
+const HeroSection = ({ responsiveStyles, timeOfDayGreeting, userName }) => (
   <View style={responsiveStyles.heroSection}>
     {/* Decorative Background Elements */}
     <View style={responsiveStyles.decorativeCircle1} />
@@ -184,7 +215,9 @@ const HeroSection = ({ responsiveStyles }) => (
     <View style={responsiveStyles.decorativeShape2} />
     
     <View style={responsiveStyles.heroContent}>
-      <Text style={responsiveStyles.welcomeText}>Welcome Serenox</Text>
+      <Text style={responsiveStyles.welcomeText}>
+        {timeOfDayGreeting}, <Text style={responsiveStyles.welcomeUserName}>{userName}</Text>
+      </Text>
       <View style={responsiveStyles.priorityContainer}>
         <Text style={responsiveStyles.priorityText}>Your Health,</Text>
         <Text style={responsiveStyles.priorityTextAccent}>Our Priority</Text>
@@ -445,6 +478,9 @@ const getResponsiveStyles = (dimensions, deviceType) => {
       color: COLORS.GRAY_TEXT,
       marginBottom: 20,
       letterSpacing: 1,
+    },
+    welcomeUserName: {
+      fontWeight: '600',
     },
     priorityContainer: {
       alignItems: 'center',

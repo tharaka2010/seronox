@@ -1,10 +1,10 @@
 //notification.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, BackHandler } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, BackHandler, Alert } from 'react-native';
+import { useFocusEffect, useRouter, Stack } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import BottomNav from '../../components/BottomNav';
-import { getFirestore, collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, query, getDocs, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 // --- Helper function to format time ---
@@ -27,14 +27,27 @@ const formatTimeAgo = (timestamp) => {
 };
 
 // --- Notification Card Component ---
-const NotificationCard = ({ item }) => {
+const NotificationCard = ({ item, onSelect, isSelected, isSelectionMode }) => {
   const router = useRouter();
+  const handlePress = () => {
+    if (isSelectionMode) {
+      onSelect(item.id);
+    } else {
+      router.push(`/notification/${item.id}`);
+    }
+  };
+
   return (
     <TouchableOpacity
-      style={styles.card}
-      onPress={() => router.push(`/notification/${item.id}`)}
+      style={[styles.card, isSelected && styles.selectedCard]}
+      onPress={handlePress}
     >
       <View style={styles.cardHeader}>
+        {isSelectionMode && (
+          <View style={styles.checkbox}>
+            {isSelected && <Feather name="check" size={16} color="white" />}
+          </View>
+        )}
         <View style={styles.iconContainer}>
           <Feather name="bell" size={20} color="#3B82F6" />
         </View>
@@ -44,10 +57,12 @@ const NotificationCard = ({ item }) => {
       <Text style={styles.cardBody} numberOfLines={2}>
         {item.message || item.body}
       </Text>
-      <View style={styles.seeMoreContainer}>
-        <Text style={styles.seeMoreText}>See more</Text>
-        <Feather name="arrow-right" size={14} color="#3B82F6" />
-      </View>
+      {!isSelectionMode && (
+        <View style={styles.seeMoreContainer}>
+          <Text style={styles.seeMoreText}>See more</Text>
+          <Feather name="arrow-right" size={14} color="#3B82F6" />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -58,6 +73,8 @@ export default function NotificationView() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedNotifications, setSelectedNotifications] = useState([]);
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -87,7 +104,7 @@ export default function NotificationView() {
       generalSnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.createdAt) {
-          allNotifications.push({ id: doc.id, ...data });
+          allNotifications.push({ id: doc.id, ...data, source: 'general' });
         }
       });
 
@@ -96,12 +113,23 @@ export default function NotificationView() {
       userNotificationsSnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.createdAt) {
-          allNotifications.push({ id: doc.id, ...data });
+          allNotifications.push({ id: doc.id, ...data, source: 'user' });
         }
       });
 
-      allNotifications.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-      setNotifications(allNotifications);
+      // De-duplicate notifications
+      const uniqueNotifications = new Map();
+      allNotifications.forEach(n => {
+        const key = `${n.title}-${n.message || n.body}`;
+        if (!uniqueNotifications.has(key)) {
+          uniqueNotifications.set(key, n);
+        }
+      });
+
+      const finalNotifications = Array.from(uniqueNotifications.values());
+      finalNotifications.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+      
+      setNotifications(finalNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
@@ -118,6 +146,57 @@ export default function NotificationView() {
     fetchNotifications();
   };
 
+  const handleSelectNotification = (id) => {
+    if (selectedNotifications.includes(id)) {
+      setSelectedNotifications(selectedNotifications.filter((item) => item !== id));
+    } else {
+      setSelectedNotifications([...selectedNotifications, id]);
+    }
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedNotifications([]); // Clear selections when toggling mode
+  };
+
+  const handleDeleteSelected = () => {
+    Alert.alert(
+      "Delete Notifications",
+      `Are you sure you want to delete ${selectedNotifications.length} notification(s)?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const db = getFirestore();
+            for (const notifId of selectedNotifications) {
+              const notification = notifications.find(n => n.id === notifId);
+              if (notification) {
+                let docRef;
+                if (notification.source === 'user') {
+                  docRef = doc(db, `users/${user.uid}/notifications`, notifId);
+                } else {
+                  // For general notifications, you might not want to allow deletion
+                  // or handle it differently. For now, we'll assume they can be deleted.
+                  // This is a placeholder for a more robust permission system.
+                  docRef = doc(db, 'notifications', notifId);
+                }
+                try {
+                  await deleteDoc(docRef);
+                } catch (error) {
+                  console.error("Error deleting notification:", notifId, error);
+                }
+              }
+            }
+            setNotifications(notifications.filter(n => !selectedNotifications.includes(n.id)));
+            toggleSelectionMode();
+          },
+        },
+      ]
+    );
+  };
+
   const ListEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIconContainer}>
@@ -130,6 +209,7 @@ export default function NotificationView() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       {/* Decorative Background Elements */}
       <View style={styles.decorativeShapes}>
         <View style={[styles.roundShape, styles.shape1]} />
@@ -152,6 +232,16 @@ export default function NotificationView() {
           <View style={styles.notificationBadge}>
             <Text style={styles.badgeText}>{notifications.length}</Text>
           </View>
+          <TouchableOpacity 
+            onPress={selectedNotifications.length > 0 ? handleDeleteSelected : toggleSelectionMode} 
+            style={styles.deleteIcon}
+          >
+            <Feather 
+              name={isSelectionMode ? "trash-2" : "trash"} 
+              size={24} 
+              color={selectedNotifications.length > 0 ? "#ef4444" : "#3B82F6"} 
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -164,7 +254,14 @@ export default function NotificationView() {
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <NotificationCard item={item} />}
+          renderItem={({ item }) => (
+            <NotificationCard 
+              item={item}
+              onSelect={handleSelectNotification}
+              isSelected={selectedNotifications.includes(item.id)}
+              isSelectionMode={isSelectionMode}
+            />
+          )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={ListEmptyComponent}
@@ -306,6 +403,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  deleteIcon: {
+    position: 'absolute',
+    right: 0,
+    padding: 8,
+  },
 
   // Loading Styles
   loaderContainer: {
@@ -345,10 +447,24 @@ const styles = StyleSheet.create({
     elevation: 4,
     backdropFilter: 'blur(10px)',
   },
+  selectedCard: {
+    backgroundColor: '#e0e7ff',
+    borderColor: '#3B82F6',
+  },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   iconContainer: {
     backgroundColor: '#e0e7ff',

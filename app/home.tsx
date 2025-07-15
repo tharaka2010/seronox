@@ -14,6 +14,8 @@ import {
 import Checkbox from 'expo-checkbox';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from 'expo-router';
+import { auth, db } from '../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
@@ -70,7 +72,7 @@ const TermsScreen = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setErrorMessage('');
     
     if (!isChecked) {
@@ -78,7 +80,22 @@ const TermsScreen = () => {
       return;
     }
     
-    router.push('mainLanding');
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+          termsAccepted: true,
+        });
+        router.replace('/screen/mainLanding');
+      } else {
+        // Handle case where user is not logged in, though they shouldn't reach this screen.
+        setErrorMessage("You are not logged in. Please restart the app.");
+      }
+    } catch (error) {
+      console.error("Error updating terms:", error);
+      setErrorMessage("An error occurred. Please try again.");
+    }
   };
 
   return (

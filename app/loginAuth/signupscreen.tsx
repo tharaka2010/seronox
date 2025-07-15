@@ -78,6 +78,7 @@ const SignUpScreen = () => {
         age: ageNum,
         gender: gender,
         createdAt: new Date(),
+        termsAccepted: false, // Add the termsAccepted flag
       });
 
       await registerForPushNotificationsAsync(user);
@@ -85,8 +86,8 @@ const SignUpScreen = () => {
       console.log('User created:', user.uid);
       console.log('User data stored in Firestore');
 
-      Alert.alert("Success", "Account created successfully! Please log in.");
-      router.replace('/loginAuth/signinscreen');
+      // Navigate to the terms and conditions page
+      router.replace('/home');
     } catch (error: any) {
       console.error("Sign-up error:", error.message);
       let userMessage = "An unexpected error occurred during registration.";
