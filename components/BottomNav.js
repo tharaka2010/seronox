@@ -65,6 +65,8 @@ const BottomNav = () => {
         const iconColor = active ? COLORS.ACTIVE_COLOR : COLORS.INACTIVE_COLOR;
         const textColor = active ? COLORS.ACTIVE_COLOR : COLORS.TEXT_COLOR;
 
+
+        
         return (
           <TouchableOpacity
             key={item.name}
